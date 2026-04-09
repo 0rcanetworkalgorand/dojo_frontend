@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dojo-bg text-dojo-text antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-dojo-heading font-heading font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .dojo-card {
+    @apply bg-dojo-surface rounded-dojo-card shadow-dojo-card border border-black/5;
+  }
+  
+  .dojo-card-hover {
+    @apply transition-all duration-200 hover:shadow-dojo-hover hover:-translate-y-1;
+  }
+  
+  .dojo-button {
+    @apply bg-dojo-teal text-white rounded-dojo-button px-6 py-3 font-medium;
+    @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-dojo-pill;
+  }
+  
+  .dojo-button-secondary {
+    @apply bg-white text-dojo-teal border-2 border-dojo-teal rounded-dojo-button px-6 py-3 font-medium;
+    @apply transition-all duration-200 hover:bg-dojo-teal/5 active:scale-[0.98];
+  }
+
+  .dojo-input {
+    @apply w-full px-4 py-3 rounded-dojo-button border-2 border-gray-100 bg-white;
+    @apply transition-all duration-200 focus:border-dojo-teal focus:outline-none focus:ring-0;
+  }
+
+  .japanese-scroll {
+    mask-image: linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .japanese-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  .text-usdc {
+    @apply text-dojo-gold font-semibold;
+  }
+  
+  .dojo-glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
+
+  .lane-badge {
+    @apply px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider;
+  }
+}
