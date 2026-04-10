@@ -8,24 +8,18 @@ import { PeraWalletConnect } from "@perawallet/connect";
 
 const defaultManager = new WalletManager({
   wallets: [
-    {
-      id: WalletId.DEFLY,
-      options: {
-        bridge: "https://walletconnect.algorand.network",
-      },
-    },
-    {
-      id: WalletId.PERA,
-      options: {
-        shouldShowSignTxnToast: true,
-      },
-    },
+    WalletId.DEFLY,
+    WalletId.PERA,
   ],
-  network: NetworkId.TESTNET,
-  algod: {
-    baseServer: "https://testnet-api.algonode.cloud",
-    port: "",
-    token: "",
+  defaultNetwork: NetworkId.TESTNET,
+  networks: {
+    [NetworkId.TESTNET]: {
+      algod: {
+        baseServer: "https://testnet-api.algonode.cloud",
+        port: "",
+        token: "",
+      },
+    },
   },
 });
 

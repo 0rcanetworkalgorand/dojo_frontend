@@ -26,7 +26,7 @@ const laneIcons = {
 
 export default function BuildPage() {
   const router = useRouter();
-  const { activeAccount, algodClient, signTransactions, wallets } = useWallet();
+  const { activeAccount, algodClient, signTransactions } = useWallet();
   const { isAuthenticated, isLoading } = useAuthGuard();
   const [step, setStep] = useState(1);
   const [lane, setLane] = useState<Lane | null>(null);
@@ -64,79 +64,76 @@ export default function BuildPage() {
     if (!activeAccount || !lane) return;
 
     setIsDeploying(true);
+    const tid = toast.loading("Preparing agent deployment...");
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
-      
-      const registryAppId = parseInt(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID || "0") || 616556100;
+      const registryAppId = parseInt(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID || "0") || 758273132;
+      const registryAddress = algosdk.getApplicationAddress(registryAppId);
 
       const randomId = Math.random().toString(36).substring(2, 8);
       const agentId = `${lane}-${randomId}`;
 
-      const tid = toast.loading("Deploying agent... check your Pera wallet");
+      console.log(`[Build] Starting deployment for Agent: ${agentId}`);
       
-      // 1. Build transactions using ATC just to get the byte-perfect objects
-      const atc = await buildRegisterAgentATC(
-        activeAccount.address,
-        agentId,
-        activeAccount.address,
-        lane,
-        { llmTier, biddingStrategy },
-        suggestedParams,
-        async (txns) => txns.map(() => new Uint8Array())
-      );
-
-      const registryTxns = atc.buildGroup().map(g => g.txn);
-
+      // 1. User Stake Payment (1 ALGO)
+      // This provides the MBR for the box and the required stake.
+      toast.loading("Signing 1 ALGO stake... Please approve.", { id: tid });
+      
       const stakeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: activeAccount.address,
-        receiver: algosdk.getApplicationAddress(registryAppId),
+        receiver: registryAddress,
         amount: BigInt(algoStake * 1_000_000),
         suggestedParams,
       });
 
-      // 2. Combine into atomic group
-      const txnsToSign = [...registryTxns, stakeTxn];
-      algosdk.assignGroupID(txnsToSign);
-
-      // 3. HARD RESET: Direct Wallet Object Access
-      // This bypasses the broken hook wrapper by talking directly to the Pera Wallet object.
-      const signedGroup: Uint8Array[] = [];
-      const txnsToSignBytes = txnsToSign.map(t => t.toByte());
+      const signedTxns = await signTransactions([stakeTxn.toByte()]);
       
-      const peraWallet = wallets?.find(w => w.id.toLowerCase().includes('pera'));
-
-      if (peraWallet) {
-        // Dynamic Method Discovery: Check which signing method Pera uses
-        const wallet = peraWallet as any;
-        const signMethod = wallet.signTransactions || wallet.signTransaction || wallet.signer;
-        
-        if (typeof signMethod === 'function') {
-          const result = await signMethod.call(wallet, txnsToSignBytes);
-          // Handle both single and array returns
-          const signedArr = Array.isArray(result) ? result : [result];
-          signedGroup.push(...signedArr.filter((b: any): b is Uint8Array => b !== null));
-        } else {
-          // Fallback to the hook if no direct method found
-          const result = await signTransactions(txnsToSignBytes);
-          signedGroup.push(...result.filter((b: any): b is Uint8Array => b !== null));
-        }
-      } else {
-        // Absolute fallback to hook
-        const result = await signTransactions(txnsToSignBytes);
-        signedGroup.push(...result.filter((b: any): b is Uint8Array => b !== null));
+      if (!signedTxns || signedTxns.length === 0) {
+        throw new Error("Pera Wallet returned no signatures");
       }
 
-      if (signedGroup.length !== txnsToSign.length) {
-        throw new Error("Transaction signing was incomplete. Please check your Pera wallet.");
-      }
+      toast.loading("Submitting stake to network...", { id: tid });
+      const sendResult = await algodClient.sendRawTransaction(signedTxns.filter(s => s !== null) as Uint8Array[]).do();
+      const stakeTxId = (sendResult as any).txId || (sendResult as any).txid;
       
-      await algodClient.sendRawTransaction(signedGroup).do();
+      console.log("[Build] Stake submitted! ID:", stakeTxId);
+      await algosdk.waitForConfirmation(algodClient, stakeTxId, 4);
+
+      // 2. Proxy Registration via Backend
+      // The backend will sign the 'register_agent' call using the Admin key.
+      toast.loading("Synchronizing with 0rca Dojo service...", { id: tid });
+      
+      const configHashHex = "0".repeat(64); // Mock config hash for now
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentId,
+          senseiAddress: activeAccount.address,
+          lane: lane.toLowerCase(),
+          configHashHex,
+          stakeTxId
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.details || err.error || 'Backend registration failed');
+      }
+
+      const regResult = await response.json();
+      console.log("[Build] Backend registration success! On-chain Tx:", regResult.txId);
+
+      // 3. Final Sync Delay
+      toast.loading("Registration complete! Finalizing dashboard...", { id: tid });
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       toast.success("Agent deployed successfully!", { id: tid });
       router.push("/dashboard");
     } catch (error: any) {
       console.error("Deploy error:", error);
-      toast.error(`Deploy failed: ${error.message}`);
+      toast.error(`Deploy failed: ${error.message}`, { id: tid });
     } finally {
       setIsDeploying(false);
     }

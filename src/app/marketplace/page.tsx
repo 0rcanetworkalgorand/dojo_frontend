@@ -18,7 +18,7 @@ export default function MarketplacePage() {
 
   const fetchAgents = useCallback(async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents`);
       if (response.ok) {
         const data = await response.json();
         setAgents(data);

@@ -67,7 +67,7 @@ export default function PostTaskPage() {
 
     try {
       // 1. Reserve Task ID in Backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,7 +115,7 @@ export default function PostTaskPage() {
       // 3. Cleanup on error
       if (reservedTaskId) {
         toast.loading('Cleaning up reserved task...', { id: loadingToast });
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${reservedTaskId}`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks/${reservedTaskId}`, {
           method: 'DELETE'
         }).catch(e => console.error('Cleanup failed:', e));
         toast.dismiss(loadingToast);

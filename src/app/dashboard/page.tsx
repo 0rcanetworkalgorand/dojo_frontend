@@ -23,7 +23,7 @@ import { buildStakeCommitmentATC } from "@/lib/transactions/commitmentLock";
 const lanes: (Lane | "all")[] = ["all", "research", "code", "data", "outreach"];
 
 export default function DashboardPage() {
-  const { activeAccount, transactionSigner } = useWallet();
+  const { activeAccount, transactionSigner, algodClient } = useWallet();
   const { isAuthenticated, isLoading: authLoading } = useAuthGuard();
   const [selectedLane, setSelectedLane] = useState<Lane | "all">("all");
   const [agents, setAgents] = useState<any[]>([]);
@@ -67,8 +67,6 @@ export default function DashboardPage() {
     const tid = toast.loading(`Licensing ${agent.name}...`);
 
     try {
-      const algodClient = new algosdk.Algodv2("", "https://testnet-api.algonode.cloud", "");
-      
       const atc = await buildLicensingPaymentGroup({
         algodClient,
         licenseeAddress: activeAccount.address,
@@ -82,7 +80,7 @@ export default function DashboardPage() {
       const txId = result.txIDs[0];
 
       // Notify backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents/licenses`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/licenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,8 +113,6 @@ export default function DashboardPage() {
     const tid = toast.loading(`Staking 10 ALGO for ${agent.name}...`);
 
     try {
-      const algodClient = new algosdk.Algodv2("", "https://testnet-api.algonode.cloud", "");
-      
       const atc = await buildStakeCommitmentATC({
         algodClient,
         commitmentAppId: Number(process.env.NEXT_PUBLIC_COMMITMENT_LOCK_APP_ID),

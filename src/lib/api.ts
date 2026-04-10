@@ -13,25 +13,25 @@ export async function fetchAgents(lane?: string, sensei?: string) {
   if (lane) params.append('lane', lane);
   if (sensei) params.append('sensei', sensei);
   
-  const res = await fetch(`${BASE_URL}/agents?${params.toString()}`);
+  const res = await fetch(`${BASE_URL}/api/agents?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch agents');
   return res.json();
 }
 
 export async function fetchStats(address: string) {
-  const res = await fetch(`${BASE_URL}/stats/${address}`);
+  const res = await fetch(`${BASE_URL}/api/agents/stats/${address}`);
   if (!res.ok) throw new Error('Failed to fetch stats');
   return res.json();
 }
 
 export async function fetchEvents() {
-  const res = await fetch(`${BASE_URL}/events`);
+  const res = await fetch(`${BASE_URL}/api/events`);
   if (!res.ok) throw new Error('Failed to fetch events');
   return res.json();
 }
 
 export async function createTask(data: any) {
-  const res = await fetch(`${BASE_URL}/tasks`, {
+  const res = await fetch(`${BASE_URL}/api/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -51,4 +51,23 @@ export async function fetchWalletAlgo(address: string): Promise<number> {
     console.error('Failed to fetch ALGO balance:', err);
     return 0;
   }
+}
+
+export async function matchAgents(description: string) {
+  const res = await fetch(`${BASE_URL}/api/tasks/match`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to match agents');
+  }
+  return res.json();
+}
+
+export async function fetchTask(taskId: string) {
+  const res = await fetch(`${BASE_URL}/api/tasks/${taskId}`);
+  if (!res.ok) throw new Error('Failed to fetch task');
+  return res.json();
 }
