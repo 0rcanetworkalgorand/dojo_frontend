@@ -8,7 +8,7 @@ import { Button } from "@/components/Button";
 import { LANE_COLORS, LANE_LABELS, Lane, LLM_TIERS, BIDDING_STRATEGIES } from "@/lib/constants";
 import { LLM_TIER_DISPLAY } from "@/lib/constants/llmTiers";
 import { motion, AnimatePresence } from "framer-motion";
-import { Database, Code, Search, Megaphone, Check, ChevronRight, ChevronLeft } from "lucide-react";
+import { Database, Code, Search, Megaphone, Check, ChevronRight, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -32,7 +32,10 @@ export default function BuildPage() {
   const [lane, setLane] = useState<Lane | null>(null);
   const [llmTier, setLlmTier] = useState<typeof LLM_TIERS[number]>("Standard");
   const [biddingStrategy, setBiddingStrategy] = useState<typeof BIDDING_STRATEGIES[number]>("Volume");
-  const [algoStake, setAlgoStake] = useState(10);
+  const [algoStake, setAlgoStake] = useState(1);
+  const [openaiApiKey, setOpenaiApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [apiKeyError, setApiKeyError] = useState("");
   const [isDeploying, setIsDeploying] = useState(false);
 
   const previewAgent = useMemo(() => ({
@@ -111,8 +114,10 @@ export default function BuildPage() {
         body: JSON.stringify({
           agentId,
           senseiAddress: activeAccount.address,
-          lane: lane.toLowerCase(),
-          configHashHex,
+          lane: lane.toUpperCase(),
+          llmTier,
+          biddingStrategy,
+          openaiApiKey,
           stakeTxId
         })
       });
@@ -305,6 +310,38 @@ export default function BuildPage() {
                   </div>
 
                   <div className="dojo-card p-8">
+                    <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">Your OpenAI API Key</label>
+                    <div className="relative">
+                      <input
+                        type={showApiKey ? "text" : "password"}
+                        value={openaiApiKey}
+                        onChange={(e) => {
+                          setOpenaiApiKey(e.target.value);
+                          setApiKeyError("");
+                        }}
+                        placeholder="sk-..."
+                        className={cn(
+                          "dojo-input pr-12",
+                          apiKeyError && "border-red-500 focus:ring-red-500/10"
+                        )}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-dojo-teal transition-colors"
+                      >
+                        {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                    {apiKeyError && (
+                      <p className="mt-2 text-xs text-red-500 font-bold uppercase tracking-wider">{apiKeyError}</p>
+                    )}
+                    <p className="mt-3 text-xs text-gray-400 font-medium italic leading-relaxed">
+                      Encrypted before storage. Never touches the blockchain. Used only to call OpenAI when your agent runs tasks.
+                    </p>
+                  </div>
+
+                  <div className="dojo-card p-8">
                     <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">Staking Amount (ALGO)</label>
                     <div className="relative">
                       <input
@@ -326,7 +363,24 @@ export default function BuildPage() {
                     <Button variant="ghost" onClick={() => setStep(1)} className="gap-2">
                        <ChevronLeft size={18} /> Back
                     </Button>
-                    <Button onClick={() => setStep(3)} className="gap-2">
+                    <Button 
+                      onClick={() => {
+                        if (!openaiApiKey) {
+                          setApiKeyError("OpenAI API key is required");
+                          return;
+                        }
+                        if (!openaiApiKey.startsWith("sk-")) {
+                          setApiKeyError("Must be a valid OpenAI API key starting with sk-");
+                          return;
+                        }
+                        if (openaiApiKey.length < 40) {
+                          setApiKeyError("Key is too short to be valid");
+                          return;
+                        }
+                        setStep(3);
+                      }} 
+                      className="gap-2"
+                    >
                       Review & Deploy <ChevronRight size={18} />
                     </Button>
                   </div>
