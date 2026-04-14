@@ -1,43 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export function useLiveFeed() {
   const [events, setEvents] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket(WS_URL);
-
-    ws.onopen = () => {
+    const socket = io(API_URL);
+    
+    socket.on("connect", () => {
       setIsConnected(true);
-      console.log("[WS] Connected to Dojo Backend");
-    };
+      console.log("[SocketIO] Connected to Dojo Backend");
+    });
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "EVENT") {
-          setEvents((prev) => [data.payload, ...prev].slice(0, 20));
-        }
-      } catch (e) {
-        console.error("[WS] Parse Error", e);
-      }
-    };
-
-    ws.onclose = () => {
+    socket.on("disconnect", () => {
       setIsConnected(false);
-      console.log("[WS] Disconnected from Dojo Backend");
-    };
+      console.log("[SocketIO] Disconnected from Dojo Backend");
+    });
 
-    ws.onerror = (err) => {
-      console.error("[WS] Error", err);
-    };
+    socket.onAny((eventName, payload) => {
+      console.log(`[SocketIO] Event: ${eventName}`, payload);
+      setEvents((prev) => [
+        { ...payload, type: eventName }, 
+        ...prev
+      ].slice(0, 20));
+    });
+
+    socket.on("connect_error", (err) => {
+      console.warn("[SocketIO] Connection attempt failed, retrying...", err.message);
+    });
 
     return () => {
-      ws.close();
+      socket.disconnect();
     };
   }, []);
 

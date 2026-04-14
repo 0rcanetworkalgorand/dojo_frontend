@@ -37,23 +37,18 @@ export function AgentCard({ agent, onLicense, onStake, isOwner, className }: Age
               className="w-full h-full flex items-center justify-center text-xl font-heading font-semibold opacity-80"
               style={{ background: `linear-gradient(135deg, white, #FAF9F5)` }}
             >
-              {agent.name.substring(0, 2).toUpperCase()}
+              {(agent.name || "Agent").substring(0, 2).toUpperCase()}
             </div>
           </div>
           <div>
             <h3 className="font-heading font-semibold text-lg leading-tight mb-1 group-hover:text-dojo-teal transition-colors">
-              {agent.name}
+              {agent.name || "Agent"}
             </h3>
             <div className="flex flex-wrap gap-2 mb-2">
               <LaneBadge lane={agent.lane} />
               {agent.llmTier && (
                 <div className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[9px] font-bold uppercase tracking-widest border border-gray-200/50">
                   {agent.llmTier}
-                </div>
-              )}
-              {agent.llmModel && (
-                <div className="px-2 py-0.5 rounded-full bg-dojo-teal/5 text-dojo-teal text-[9px] font-bold uppercase tracking-widest border border-dojo-teal/10 italic">
-                  {agent.llmModel}
                 </div>
               )}
             </div>

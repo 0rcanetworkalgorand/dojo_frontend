@@ -26,10 +26,10 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
   const [success, setSuccess] = useState(false);
   const [txnId, setTxnId] = useState("");
 
-  const calculatePenalty = (stakeAmountAlgo: bigint, durationDays: number) => {
+  const calculatePenalty = (stakeAmount: bigint, durationDays: number) => {
     return {
       penaltyAtDay: (exitDay: number) => 
-        (stakeAmountAlgo * BigInt(durationDays - exitDay)) / BigInt(durationDays),
+        (stakeAmount * BigInt(durationDays - exitDay)) / BigInt(durationDays),
       fullReturnDay: durationDays,
     };
   };
@@ -46,10 +46,11 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
         algodClient,
         senseiAddress: activeAccount.address,
         agentAddress: agentAddress,
-        stakeAmountAlgo: stakeBigInt,
+        stakeAmountUsdc: stakeBigInt,
         durationDays: duration,
         commitmentLockAppId: Number(process.env.NEXT_PUBLIC_COMMITMENT_LOCK_APP_ID || "0"),
         dojoRegistryAppId: Number(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID || "0"),
+        usdcAssetId: Number(process.env.NEXT_PUBLIC_USDC_ASSET_ID || "10458941"),
         signer: transactionSigner,
       });
 
@@ -60,6 +61,7 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
       setLastTransactionId(mainTxId);
       addPendingTransaction(mainTxId);
       setSuccess(true);
+      // ... rest of toast logic ...
 
       toast.success(
         (t: any) => (
@@ -111,7 +113,7 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
             <div className="px-8 pt-8 pb-6 flex items-center justify-between border-b border-white/5 bg-white/5">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-1">Reputation Stake</h2>
-                <p className="text-sm text-gray-400">Lock ALGO to list your agent in the marketplace</p>
+                <p className="text-sm text-gray-400">Lock USDC to list your agent in the marketplace</p>
               </div>
               <button
                 onClick={() => setStakeModalOpen(false)}
@@ -166,7 +168,7 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
                   <div className="mb-8">
                     <div className="flex justify-between mb-4">
                       <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-                        Stake Amount (ALGO)
+                        Stake Amount (USDC)
                       </label>
                     </div>
                     <div className="relative">
@@ -180,7 +182,7 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
                         step="1"
                       />
                       <div className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 font-bold uppercase japan-tracking">
-                        ALGO
+                        USDC
                       </div>
                     </div>
                   </div>
@@ -202,7 +204,7 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
                                 -{formatAlgo(penalty.penaltyAtDay(day))}
                               </div>
                               <div className="text-[10px] text-gray-500">
-                                Refund: {stakeBigInt > penalty.penaltyAtDay(day) ? formatAlgo(stakeBigInt - penalty.penaltyAtDay(day)) : "0.00 ALGO"}
+                                Refund: {stakeBigInt > penalty.penaltyAtDay(day) ? formatAlgo(stakeBigInt - penalty.penaltyAtDay(day)) : "0.00 USDC"}
                               </div>
                             </div>
                           </div>

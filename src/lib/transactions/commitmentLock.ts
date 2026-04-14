@@ -111,26 +111,31 @@ export async function buildWithdrawStakeATC(params: {
 }
 
 /**
- * Combined atomic group to stake ALGO and update agent status in registry.
+ * Combined atomic group to stake USDC and update agent status in registry.
+ * Txn 1: USDC transfer to CommitmentLock
+ * Txn 2: CommitmentLock.stake(stake_id, sensei, amount, lock_days, stake_txn)
+ * Txn 3: DojoRegistry.list_agent(agent_id, expiry)
  */
 export async function buildStakeAndListAtomicGroup(params: {
     algodClient: algosdk.Algodv2;
     senseiAddress: string;
     agentAddress: string;
-    stakeAmountAlgo: bigint;
+    stakeAmountUsdc: bigint;
     durationDays: number;
     commitmentLockAppId: number;
     dojoRegistryAppId: number;
+    usdcAssetId: number;
     signer: algosdk.TransactionSigner;
 }) {
     const { 
         algodClient, 
         senseiAddress, 
         agentAddress, 
-        stakeAmountAlgo, 
+        stakeAmountUsdc, 
         durationDays, 
         commitmentLockAppId, 
         dojoRegistryAppId, 
+        usdcAssetId,
         signer 
     } = params;
 
@@ -138,11 +143,12 @@ export async function buildStakeAndListAtomicGroup(params: {
     const atc = new algosdk.AtomicTransactionComposer();
     const lockAddr = algosdk.getApplicationAddress(commitmentLockAppId);
 
-    // 1. Stake Transaction (Payment)
-    const stakeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    // 1. Stake Transaction (Asset Transfer - USDC)
+    const stakeTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: senseiAddress,
         receiver: lockAddr,
-        amount: stakeAmountAlgo,
+        assetIndex: usdcAssetId,
+        amount: stakeAmountUsdc,
         suggestedParams: sp,
     });
 
@@ -156,7 +162,7 @@ export async function buildStakeAndListAtomicGroup(params: {
                 { type: 'address', name: 'sensei' },
                 { type: 'uint64', name: 'amount' },
                 { type: 'uint64', name: 'lock_days' },
-                { type: 'pay', name: 'stake_txn' }
+                { type: 'axfer', name: 'stake_txn' }
             ],
             returns: { type: 'bool' }
         }]
@@ -168,9 +174,36 @@ export async function buildStakeAndListAtomicGroup(params: {
         methodArgs: [
             agentAddress,
             senseiAddress,
-            stakeAmountAlgo,
+            stakeAmountUsdc,
             BigInt(durationDays),
             { txn: stakeTxn, signer }
+        ],
+        sender: senseiAddress,
+        signer,
+        suggestedParams: sp,
+    });
+
+    // 3. DojoRegistry.list_agent call
+    const registryAbi = new algosdk.ABIInterface({
+        name: 'DojoRegistry',
+        methods: [{
+            name: 'list_agent',
+            args: [
+                { type: 'string', name: 'agent_id' },
+                { type: 'uint64', name: 'expiry' }
+            ],
+            returns: { type: 'bool' }
+        }]
+    });
+
+    const expiry = Math.floor(Date.now() / 1000) + (durationDays * 86400);
+
+    atc.addMethodCall({
+        appID: BigInt(dojoRegistryAppId),
+        method: registryAbi.getMethodByName('list_agent'),
+        methodArgs: [
+            agentAddress,
+            BigInt(expiry)
         ],
         sender: senseiAddress,
         signer,

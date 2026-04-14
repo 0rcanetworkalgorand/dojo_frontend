@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import algosdk from "algosdk";
 import { Navigation } from "@/components/Navigation";
 import { AgentCard } from "@/components/AgentCard";
 import { Button } from "@/components/Button";
@@ -12,10 +13,8 @@ import { Database, Code, Search, Megaphone, Check, ChevronRight, ChevronLeft, Ey
 import { useWallet } from "@txnlab/use-wallet-react";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { buildRegisterAgentATC } from "@/lib/transactions/dojoRegistry";
 import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
-import algosdk from "algosdk";
 
 const laneIcons = {
   research: Search,
@@ -26,7 +25,7 @@ const laneIcons = {
 
 export default function BuildPage() {
   const router = useRouter();
-  const { activeAccount, algodClient, signTransactions } = useWallet();
+  const { activeAccount, signTransactions, algodClient } = useWallet();
   const { isAuthenticated, isLoading } = useAuthGuard();
   const [step, setStep] = useState(1);
   const [lane, setLane] = useState<Lane | null>(null);
@@ -69,44 +68,37 @@ export default function BuildPage() {
     setIsDeploying(true);
     const tid = toast.loading("Preparing agent deployment...");
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
-      const registryAppId = parseInt(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID || "0") || 758273132;
-      const registryAddress = algosdk.getApplicationAddress(registryAppId);
+      const registryAppId = parseInt(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID || "0") || 758713047;
 
       const randomId = Math.random().toString(36).substring(2, 8);
       const agentId = `${lane}-${randomId}`;
 
       console.log(`[Build] Starting deployment for Agent: ${agentId}`);
       
-      // 1. User Stake Payment (1 ALGO)
-      // This provides the MBR for the box and the required stake.
-      toast.loading("Signing 1 ALGO stake... Please approve.", { id: tid });
-      
+      // Step 1: Sensei stakes ALGO into the registry manually
+      toast.loading("Sign the ALGO stake transaction...", { id: tid });
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      const registryAddress = algosdk.getApplicationAddress(registryAppId);
+
       const stakeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: activeAccount.address,
         receiver: registryAddress,
-        amount: BigInt(algoStake * 1_000_000),
+        amount: BigInt(algoStake * 1_000_000), // Convert to microAlgos
         suggestedParams,
       });
 
       const signedTxns = await signTransactions([stakeTxn.toByte()]);
-      
       if (!signedTxns || signedTxns.length === 0) {
-        throw new Error("Pera Wallet returned no signatures");
+        throw new Error("Wallet returned no signatures");
       }
 
-      toast.loading("Submitting stake to network...", { id: tid });
+      toast.loading("Submitting ALGO stake to network...", { id: tid });
       const sendResult = await algodClient.sendRawTransaction(signedTxns.filter(s => s !== null) as Uint8Array[]).do();
       const stakeTxId = (sendResult as any).txId || (sendResult as any).txid;
-      
-      console.log("[Build] Stake submitted! ID:", stakeTxId);
       await algosdk.waitForConfirmation(algodClient, stakeTxId, 4);
 
-      // 2. Proxy Registration via Backend
-      // The backend will sign the 'register_agent' call using the Admin key.
-      toast.loading("Synchronizing with 0rca Dojo service...", { id: tid });
-      
-      const configHashHex = "0".repeat(64); // Mock config hash for now
+      // Step 2: Send API request to register agent via backend (admin-signed config binding)
+      toast.loading("Registering agent on 0rca Dojo...", { id: tid });
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/register`, {
         method: 'POST',
@@ -117,8 +109,7 @@ export default function BuildPage() {
           lane: lane.toUpperCase(),
           llmTier,
           biddingStrategy,
-          openaiApiKey,
-          stakeTxId
+          openaiApiKey
         })
       });
 
@@ -129,10 +120,6 @@ export default function BuildPage() {
 
       const regResult = await response.json();
       console.log("[Build] Backend registration success! On-chain Tx:", regResult.txId);
-
-      // 3. Final Sync Delay
-      toast.loading("Registration complete! Finalizing dashboard...", { id: tid });
-      await new Promise(resolve => setTimeout(resolve, 3000));
       
       toast.success("Agent deployed successfully!", { id: tid });
       router.push("/dashboard");
@@ -274,9 +261,6 @@ export default function BuildPage() {
                           )}>
                             {tier}
                           </div>
-                          <div className="text-xl font-bold text-dojo-heading mb-1 italic">
-                            {LLM_TIER_DISPLAY[tier].model}
-                          </div>
                           <div className="text-xs text-gray-500 font-medium mb-3">
                             {LLM_TIER_DISPLAY[tier].description}
                           </div>
@@ -310,7 +294,7 @@ export default function BuildPage() {
                   </div>
 
                   <div className="dojo-card p-8">
-                    <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">Your OpenAI API Key</label>
+                    <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">AI Model API Key</label>
                     <div className="relative">
                       <input
                         type={showApiKey ? "text" : "password"}
@@ -319,7 +303,7 @@ export default function BuildPage() {
                           setOpenaiApiKey(e.target.value);
                           setApiKeyError("");
                         }}
-                        placeholder="sk-..."
+                        placeholder="sk-... or gsk-..."
                         className={cn(
                           "dojo-input pr-12",
                           apiKeyError && "border-red-500 focus:ring-red-500/10"
@@ -366,15 +350,14 @@ export default function BuildPage() {
                     <Button 
                       onClick={() => {
                         if (!openaiApiKey) {
-                          setApiKeyError("OpenAI API key is required");
+                          setApiKeyError("API key is required");
                           return;
                         }
-                        if (!openaiApiKey.startsWith("sk-")) {
-                          setApiKeyError("Must be a valid OpenAI API key starting with sk-");
-                          return;
-                        }
-                        if (openaiApiKey.length < 40) {
-                          setApiKeyError("Key is too short to be valid");
+                        const isGroq = openaiApiKey.startsWith("gsk_");
+                        const isOpenAICompatible = openaiApiKey.startsWith("sk-");
+                        
+                        if (!isGroq && !isOpenAICompatible) {
+                          setApiKeyError("Invalid API key format (should start with sk- or gsk_)");
                           return;
                         }
                         setStep(3);

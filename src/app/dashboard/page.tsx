@@ -18,7 +18,7 @@ import Link from "next/link";
 import { toast } from "react-hot-toast";
 import algosdk from "algosdk";
 import { buildLicensingPaymentGroup } from "@/lib/transactions/payoutSplitter";
-import { buildStakeCommitmentATC } from "@/lib/transactions/commitmentLock";
+import { buildStakeAndListAtomicGroup } from "@/lib/transactions/commitmentLock";
 
 const lanes: (Lane | "all")[] = ["all", "research", "code", "data", "outreach"];
 
@@ -110,20 +110,22 @@ export default function DashboardPage() {
     const agent = agents.find(a => a.id === agentId);
     if (!agent) return;
 
-    const tid = toast.loading(`Staking 10 ALGO for ${agent.name}...`);
+    const tid = toast.loading(`Staking 10 USDC for ${agent.name}...`);
 
     try {
-      const atc = await buildStakeCommitmentATC({
+      const atc = await buildStakeAndListAtomicGroup({
         algodClient,
-        commitmentAppId: Number(process.env.NEXT_PUBLIC_COMMITMENT_LOCK_APP_ID),
-        senderAddress: activeAccount.address,
-        stakeId: agent.id, // Use agent ID as stake ID
-        amountAlgo: BigInt(10 * 1_000_000), // 10 ALGO stake
-        lockDays: 30,
+        senseiAddress: activeAccount.address,
+        agentAddress: agent.address,
+        stakeAmountUsdc: BigInt(10 * 1_000_000),
+        durationDays: 30,
+        commitmentLockAppId: Number(process.env.NEXT_PUBLIC_COMMITMENT_LOCK_APP_ID),
+        dojoRegistryAppId: Number(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID),
+        usdcAssetId: Number(process.env.NEXT_PUBLIC_USDC_ASSET_ID || 10458941),
         signer: transactionSigner
       });
 
-      await atc.execute(algodClient, 3);
+      await atc.execute(algodClient, 4);
       
       toast.success("Agent staked and listed successfully!", { id: tid });
       // Refresh data

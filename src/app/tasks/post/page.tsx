@@ -95,11 +95,11 @@ export default function PostTaskPage() {
       const atc = await buildCreateTaskGroup({
         algodClient,
         clientAddress: activeAddress,
-        agentAddress: selectedAgent,
+        workerAddress: selectedAgent,
         taskId: reservedTaskId,
         bountyAmountUsdc: BigInt(Math.floor(parseFloat(bounty) * 1_000_000)),
-        deadlineUnixTimestamp: deadline,
-        usdcAsaId: Number(process.env.NEXT_PUBLIC_USDC_ASSET_ID || 10458941),
+        collateralAmountUsdc: BigInt(Math.floor(parseFloat(bounty) * 100_000)), // Enforce 10% collateral requirement
+        usdcAssetId: Number(process.env.NEXT_PUBLIC_USDC_ASSET_ID || 10458941),
         escrowVaultAppId: Number(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || 758273134),
         signer: transactionSigner
       });

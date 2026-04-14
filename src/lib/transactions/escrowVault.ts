@@ -7,8 +7,8 @@ export interface LockBountyParams {
     clientAddress: string;
     workerAddress: string;
     taskId: string;
-    bountyAmountUsdc: bigint;
-    collateralAmountUsdc: bigint;
+    bountyAmountAlgo: bigint;
+    collateralAmountAlgo: bigint;
 }
 
 /**
@@ -20,12 +20,11 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
     const {
         algodClient,
         escrowAppId,
-        usdcAsaId,
         clientAddress,
         workerAddress,
         taskId,
-        bountyAmountUsdc,
-        collateralAmountUsdc
+        bountyAmountAlgo,
+        collateralAmountAlgo
     } = params;
 
     const sp = await algodClient.getTransactionParams().do();
@@ -33,14 +32,13 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
 
     const appAddr = algosdk.getApplicationAddress(escrowAppId);
 
-    // 1. Asset Transfer of Bounty
-    const bountyTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    // 1. Payment Transfer of Bounty
+    const bountyTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: clientAddress,
         receiver: appAddr,
-        assetIndex: Number(usdcAsaId),
-        amount: bountyAmountUsdc,
+        amount: bountyAmountAlgo,
         suggestedParams: sp,
-    } as any);
+    });
 
     // 2. lock_bounty call
     const abi = new algosdk.ABIInterface({
@@ -54,7 +52,7 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
                     { type: 'address', name: 'worker' },
                     { type: 'uint64', name: 'bounty_amount' },
                     { type: 'uint64', name: 'collateral_amount' },
-                    { type: 'axfer', name: 'bounty_txn' }
+                    { type: 'pay', name: 'bounty_txn' }
                 ],
                 returns: { type: 'bool' }
             }
@@ -68,13 +66,16 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
             taskId,
             clientAddress,
             workerAddress,
-            bountyAmountUsdc,
-            collateralAmountUsdc,
+            bountyAmountAlgo,
+            collateralAmountAlgo,
             { txn: bountyTxn, signer: algosdk.makeEmptyTransactionSigner() }
         ],
         sender: clientAddress,
         signer: algosdk.makeEmptyTransactionSigner(),
         suggestedParams: sp,
+        boxes: [
+            { appIndex: escrowAppId, name: new Uint8Array(Buffer.from(taskId)) }
+        ]
     });
 
     return atc;
@@ -112,80 +113,89 @@ export async function buildReleasePaymentTransaction(params: {
         sender: adminAddress,
         signer: algosdk.makeEmptyTransactionSigner(),
         suggestedParams: sp,
+        boxes: [
+            { appIndex: escrowAppId, name: new Uint8Array(Buffer.from(taskId)) }
+        ]
     });
 
     return atc;
 }
 
 /**
- * Builds an atomic transaction group to create a task in the EscrowVault.
- * 1. Asset Transfer (USDC) to EscrowVault.
- * 2. Application Call (createTask) to EscrowVault.
+ * Builds an atomic transaction group to lock a bounty in the EscrowVault.
+ * 1. Asset Transfer (USDC) from Client to EscrowVault.
+ * 2. Application Call (lock_bounty) to EscrowVault.
  */
 export async function buildCreateTaskGroup(params: {
-  algodClient: algosdk.Algodv2,
-  clientAddress: string,
-  agentAddress: string,
-  taskId: string,
-  bountyAmountUsdc: bigint,
-  deadlineUnixTimestamp: number,
-  usdcAsaId: number,
-  escrowVaultAppId: number,
-  signer: algosdk.TransactionSigner
+    algodClient: algosdk.Algodv2;
+    escrowVaultAppId: number;
+    clientAddress: string;
+    workerAddress: string;
+    taskId: string;
+    bountyAmountAlgo: bigint;
+    collateralAmountAlgo: bigint;
+    signer: algosdk.TransactionSigner;
 }): Promise<algosdk.AtomicTransactionComposer> {
-  const { algodClient, clientAddress, taskId, bountyAmountUsdc, deadlineUnixTimestamp, usdcAsaId, escrowVaultAppId, signer } = params;
-  const sp = await algodClient.getTransactionParams().do();
-  const atc = new algosdk.AtomicTransactionComposer();
-  const appAddr = algosdk.getApplicationAddress(escrowVaultAppId);
+    const {
+        algodClient,
+        escrowVaultAppId,
+        clientAddress,
+        workerAddress,
+        taskId,
+        bountyAmountAlgo,
+        collateralAmountAlgo,
+        signer
+    } = params;
 
-  // 1. Asset Transfer of Bounty
-  const bountyTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    sender: clientAddress,
-    receiver: appAddr,
-    assetIndex: usdcAsaId,
-    amount: bountyAmountUsdc,
-    suggestedParams: sp,
-  });
+    const sp = await algodClient.getTransactionParams().do();
+    const atc = new algosdk.AtomicTransactionComposer();
+    const appAddr = algosdk.getApplicationAddress(escrowVaultAppId);
 
-  // 2. Application Call: createTask(bytes32, uint64)
-  const abi = new algosdk.ABIInterface({
-    name: 'EscrowVault',
-    methods: [
-      {
-        name: 'createTask',
-        args: [
-          { type: 'byte[32]', name: 'task_id' },
-          { type: 'uint64', name: 'deadline' }
+    // 1. Payment Transfer of Bounty
+    const bountyTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: clientAddress,
+        receiver: appAddr,
+        amount: bountyAmountAlgo,
+        suggestedParams: sp,
+    });
+
+    // 2. lock_bounty call
+    const abi = new algosdk.ABIInterface({
+        name: 'EscrowVault',
+        methods: [
+            {
+                name: 'lock_bounty',
+                args: [
+                    { type: 'string', name: 'task_id' },
+                    { type: 'address', name: 'client' },
+                    { type: 'address', name: 'worker' },
+                    { type: 'uint64', name: 'bounty_amount' },
+                    { type: 'uint64', name: 'collateral_amount' },
+                    { type: 'pay', name: 'bounty_txn' }
+                ],
+                returns: { type: 'bool' }
+            }
+        ]
+    });
+
+    atc.addMethodCall({
+        appID: BigInt(escrowVaultAppId),
+        method: abi.getMethodByName('lock_bounty'),
+        methodArgs: [
+            taskId,
+            clientAddress,
+            workerAddress,
+            bountyAmountAlgo,
+            collateralAmountAlgo,
+            { txn: bountyTxn, signer }
         ],
-        returns: { type: 'void' }
-      }
-    ]
-  });
+        sender: clientAddress,
+        signer,
+        suggestedParams: sp,
+        boxes: [
+            { appIndex: escrowVaultAppId, name: new Uint8Array(Buffer.from(taskId)) }
+        ]
+    });
 
-  // Convert taskId string to 32-byte array (pad/truncate as needed)
-  const taskIdBytes = new Uint8Array(32);
-  const encodedId = new TextEncoder().encode(taskId);
-  taskIdBytes.set(encodedId.slice(0, 32));
-
-  atc.addMethodCall({
-    appID: BigInt(escrowVaultAppId),
-    method: abi.getMethodByName('createTask'),
-    methodArgs: [taskIdBytes, BigInt(deadlineUnixTimestamp)],
-    sender: clientAddress,
-    signer,
-    suggestedParams: sp,
-  });
-
-  // Add the asset transfer as the first transaction in the group
-  // Actually, some implementations expect the axfer within the method call or as an accompaniment.
-  // The user says "The group contains two transactions".
-  // Note: addMethodCall with an explicit txn in methodArgs is one way, 
-  // but if the method signature is just (byte[32], uint64), then the axfer must be a separate transaction in the same group.
-  
-  // To match "The group contains two transactions", I'll add the axfer separately.
-  // Wait, if it's added separately, atc.addTransaction({txn, signer}) should be used.
-  
-  atc.addTransaction({ txn: bountyTxn, signer });
-
-  return atc;
+    return atc;
 }

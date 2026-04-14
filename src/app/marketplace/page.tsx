@@ -53,7 +53,7 @@ export default function MarketplacePage() {
 
   const filteredAgents = useMemo(() => {
      if (filter === 'ALL') return agents;
-     return agents.filter(a => a.lane.toUpperCase() === filter);
+     return agents.filter(a => String(a.lane || '').toUpperCase() === filter);
   }, [agents, filter]);
 
   return (
@@ -102,7 +102,10 @@ export default function MarketplacePage() {
               <AgentCard 
                 key={agent.id} 
                 agent={agent} 
-                onLicense={(id) => toast.success(`Licensing flow for agent ${id.substring(0,8)}...`)}
+                onLicense={(id) => {
+                  toast('Routing to hire flow...', { icon: '🧘' });
+                  window.location.href = '/hire';
+                }}
               />
             ))}
           </div>

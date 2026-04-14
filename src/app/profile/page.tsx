@@ -13,6 +13,7 @@ import { fetchAgents, fetchStats } from "@/lib/api";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
+import { useLiveFeed } from "@/hooks/useLiveFeed";
 import algosdk from "algosdk";
 import {
   Area,
@@ -45,6 +46,7 @@ const chartData = [
 export default function ProfilePage() {
   const { activeAccount, transactionSigner } = useWallet();
   const { isAuthenticated, isLoading: authLoading } = useAuthGuard();
+  const { earnings: liveEvents } = useLiveFeed();
   const [activeTab, setActiveTab] = useState("agents");
   const [agents, setAgents] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -52,25 +54,41 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    async function loadProfile() {
-      if (!activeAccount?.address) return;
-      try {
-        setLoading(true);
-        const [agentsData, statsData] = await Promise.all([
-          fetchAgents(undefined, activeAccount.address),
-          fetchStats(activeAccount.address)
-        ]);
-        setAgents(agentsData);
-        setStats(statsData);
-      } catch (err) {
-        console.error("Profile data load error:", err);
-      } finally {
-        setLoading(false);
-      }
+  const loadProfile = async (silent = false) => {
+    if (!activeAccount?.address) return;
+    try {
+      if (!silent) setLoading(true);
+      else setIsRefreshing(true);
+      
+      const [agentsData, statsData] = await Promise.all([
+        fetchAgents(undefined, activeAccount.address),
+        fetchStats(activeAccount.address)
+      ]);
+      setAgents(agentsData);
+      setStats(statsData);
+    } catch (err) {
+      console.error("Profile data load error:", err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  useEffect(() => {
     if (isAuthenticated) loadProfile();
   }, [activeAccount?.address, isAuthenticated]);
+
+  // Handle Real-time updates from WebSocket
+  useEffect(() => {
+    if (liveEvents.length > 0) {
+      const lastEvent = liveEvents[0];
+      // Refresh if it's a settlement event or status update relevant to us
+      if (["TASK_SETTLED", "AGENT_REGISTERED", "TASK_STATUS"].includes(lastEvent.type)) {
+        console.log("[Profile] Real-time event detected, refreshing stats...");
+        loadProfile(true); 
+      }
+    }
+  }, [liveEvents]);
 
   if (authLoading || (loading && !stats)) {
     return <LoadingSpinner />;

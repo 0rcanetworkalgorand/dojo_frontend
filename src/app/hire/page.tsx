@@ -11,6 +11,7 @@ import { Search, Sparkles, CheckCircle, Users, Diamond, ArrowRight, ArrowLeft, Z
 import { formatAlgoDisplay, truncateAddress } from '@/lib/utils/format';
 import algosdk from 'algosdk';
 import { io } from 'socket.io-client';
+import { buildCreateTaskGroup } from '@/lib/transactions/escrowVault';
 
 type Step = 'describe' | 'match' | 'confirm' | 'processing' | 'result';
 
@@ -48,7 +49,7 @@ export default function HirePage() {
   const [selectedAgent, setSelectedAgent] = useState<MatchedAgent | null>(null);
   const [bountyAlgo, setBountyAlgo] = useState('1');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Step 4/5: Processing + Result
   const [taskId, setTaskId] = useState<string | null>(null);
   const [taskState, setTaskState] = useState<string>('CREATED');
@@ -60,7 +61,7 @@ export default function HirePage() {
     if (step === 'processing' && taskId) {
       // WebSocket listener
       const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
-      
+
       socket.on('TASK_RESULT', (data: any) => {
         if (data.taskId === taskId) {
           setTaskResult(data.result);
@@ -126,7 +127,7 @@ export default function HirePage() {
       setMatchResult(result);
       setSelectedAgent(null);
       setStep('match');
-      
+
       if (result.agents.length === 0) {
         toast('No agents found for this task type. Try a different description.', { icon: '🔍' });
       } else {
@@ -154,18 +155,24 @@ export default function HirePage() {
 
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
-      const registryAppId = parseInt(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID || '0') || 758273132;
-      const registryAddress = algosdk.getApplicationAddress(registryAppId);
+      const escrowVaultAppId = parseInt(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || '0') || 758715891;
 
-      const stakeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: activeAccount.address,
-        receiver: registryAddress,
-        amount: BigInt(Math.floor(bountyNum * 1_000_000)),
-        suggestedParams,
+      const atc = await buildCreateTaskGroup({
+        algodClient,
+        escrowVaultAppId,
+        clientAddress: activeAccount.address,
+        workerAddress: selectedAgent.senseiAddress,
+        taskId: `T-${Date.now()}`,
+        bountyAmountAlgo: BigInt(Math.floor(bountyNum * 1_000_000)),
+        collateralAmountAlgo: BigInt(Math.floor(bountyNum * 100_000)), // 10%
+        signer: algosdk.makeEmptyTransactionSigner()
       });
 
-      toast.loading('Sign the stake in your wallet...', { id: tid });
-      const signedTxns = await signTransactions([stakeTxn.toByte()]);
+      const txGroup = atc.buildGroup();
+      const rawTxns = txGroup.map(t => t.txn.toByte());
+
+      toast.loading('Sign the task smart contract calls in your wallet...', { id: tid });
+      const signedTxns = await signTransactions(rawTxns);
 
       if (!signedTxns || signedTxns.length === 0) {
         throw new Error('Wallet returned no signatures');
@@ -269,25 +276,23 @@ export default function HirePage() {
             const stepIdx = allSteps.indexOf(s.key === 'result' ? 'result' : s.key);
             const isActive = step === s.key || (s.key === 'result' && step === 'processing');
             const isCompleted = currentIdx > stepIdx;
-            
+
             return (
               <React.Fragment key={s.key}>
                 {i > 0 && (
                   <div className={`w-10 h-px ${isCompleted || isActive ? 'bg-dojo-teal' : 'bg-gray-200'}`} />
                 )}
                 <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    isActive
-                      ? 'bg-dojo-teal text-white shadow-lg shadow-dojo-teal/30'
-                      : isCompleted
-                        ? 'bg-dojo-teal/20 text-dojo-teal'
-                        : 'bg-gray-100 text-gray-400'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isActive
+                    ? 'bg-dojo-teal text-white shadow-lg shadow-dojo-teal/30'
+                    : isCompleted
+                      ? 'bg-dojo-teal/20 text-dojo-teal'
+                      : 'bg-gray-100 text-gray-400'
+                    }`}>
                     {isCompleted ? <CheckCircle size={14} /> : s.num}
                   </div>
-                  <span className={`text-sm font-medium hidden sm:block ${
-                    isActive ? 'text-dojo-teal' : 'text-gray-400'
-                  }`}>{s.label}</span>
+                  <span className={`text-sm font-medium hidden sm:block ${isActive ? 'text-dojo-teal' : 'text-gray-400'
+                    }`}>{s.label}</span>
                 </div>
               </React.Fragment>
             );
@@ -418,11 +423,10 @@ export default function HirePage() {
                         key={agent.id}
                         whileHover={{ y: -2 }}
                         onClick={() => setSelectedAgent(agent)}
-                        className={`dojo-card p-5 cursor-pointer transition-all duration-200 ${
-                          selectedAgent?.id === agent.id
-                            ? 'ring-2 ring-dojo-teal shadow-lg shadow-dojo-teal/10'
-                            : 'hover:shadow-dojo-hover'
-                        }`}
+                        className={`dojo-card p-5 cursor-pointer transition-all duration-200 ${selectedAgent?.id === agent.id
+                          ? 'ring-2 ring-dojo-teal shadow-lg shadow-dojo-teal/10'
+                          : 'hover:shadow-dojo-hover'
+                          }`}
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
@@ -615,11 +619,10 @@ export default function HirePage() {
               transition={{ duration: 0.4 }}
             >
               {/* Status Banner */}
-              <div className={`rounded-2xl p-6 mb-6 ${
-                taskState === 'SETTLED' 
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600' 
-                  : 'bg-gradient-to-r from-red-500 to-rose-600'
-              } text-white`}>
+              <div className={`rounded-2xl p-6 mb-6 ${taskState === 'SETTLED'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
+                : 'bg-gradient-to-r from-red-500 to-rose-600'
+                } text-white`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <span className="text-3xl">{taskState === 'SETTLED' ? '✅' : '❌'}</span>
