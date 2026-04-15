@@ -11,6 +11,9 @@ import algosdk from 'algosdk';
 import { buildCreateTaskGroup } from '@/lib/transactions/escrowVault';
 import { fetchAgents } from '@/lib/api';
 import { Agent } from '@/lib/types';
+import { SwarmParticles } from '@/components/SwarmParticles';
+import { Navigation } from '@/components/Navigation';
+import { cn } from '@/lib/utils';
 
 const LANES = [
   { id: 'RESEARCH', name: 'Research', icon: BeakerIcon, color: 'indigo', description: 'Deep analysis, data gathering, and report generation.' },
@@ -97,9 +100,8 @@ export default function PostTaskPage() {
         clientAddress: activeAddress,
         workerAddress: selectedAgent,
         taskId: reservedTaskId,
-        bountyAmountUsdc: BigInt(Math.floor(parseFloat(bounty) * 1_000_000)),
-        collateralAmountUsdc: BigInt(Math.floor(parseFloat(bounty) * 100_000)), // Enforce 10% collateral requirement
-        usdcAssetId: Number(process.env.NEXT_PUBLIC_USDC_ASSET_ID || 10458941),
+        bountyAmountAlgo: BigInt(Math.floor(parseFloat(bounty) * 1_000_000)),
+        collateralAmountAlgo: BigInt(Math.floor(parseFloat(bounty) * 100_000)), // Enforce 10% collateral requirement
         escrowVaultAppId: Number(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || 758273134),
         signer: transactionSigner
       });
@@ -126,25 +128,28 @@ export default function PostTaskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white pt-24 pb-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500 mb-4 font-outfit">
-            Summon the Swarm
+    <div className="min-h-screen bg-dojo-bg relative overflow-hidden">
+      <SwarmParticles />
+      <Navigation />
+
+      <main className="max-w-7xl mx-auto px-6 sm:px-12 py-20 relative z-10">
+        <div className="max-w-3xl mb-20 text-left">
+          <h1 className="text-6xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-none">
+            Summon<br/>The Swarm
           </h1>
-          <p className="text-slate-400 max-w-xl mx-auto">
-            Define your mission. Our specialized AI agents will compete to execute it with precision.
+          <p className="text-white/40 font-medium uppercase tracking-[0.2em] text-xs">
+            Mission Briefing // Direct Execution Protocol
           </p>
         </div>
 
-        <form onSubmit={handlePost} className="space-y-8">
+        <form onSubmit={handlePost} className="space-y-20">
           {/* Lane Selection */}
           <section>
-            <h2 className="text-lg font-medium mb-4 text-slate-300 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/30">1</span>
-              Select Specialization Lane
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex items-center gap-4 mb-10">
+                 <span className="text-[10px] font-black text-dojo-teal uppercase tracking-[0.3em]">Sector 01</span>
+                 <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Mission Specialization</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {LANES.map((lane) => {
                 const Icon = lane.icon;
                 const isSelected = selectedLane === lane.id;
@@ -153,20 +158,22 @@ export default function PostTaskPage() {
                     key={lane.id}
                     type="button"
                     onClick={() => setSelectedLane(lane.id)}
-                    className={`relative p-6 rounded-2xl border text-left transition-all duration-300 group ${
+                    className={cn(
+                      "relative p-8 rounded-dojo-modal border text-left transition-all duration-500 group overflow-hidden",
                       isSelected 
-                        ? 'bg-blue-600/10 border-blue-500/50 ring-1 ring-blue-500/30' 
-                        : 'bg-white/5 border-white/10 hover:border-white/20'
-                    }`}
-                  >
-                    <Icon className={`w-8 h-8 mb-4 transition-colors ${isSelected ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400'}`} />
-                    <h3 className="font-bold mb-1">{lane.name}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">{lane.description}</p>
-                    {isSelected && (
-                      <div className="absolute top-3 right-3 text-blue-400">
-                        <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                      </div>
+                        ? 'bg-white border-white text-black shadow-[0_0_30px_rgba(255,255,255,0.1)]' 
+                        : 'dojo-card-hover text-white/40 hover:text-white'
                     )}
+                  >
+                    <Icon className={cn(
+                        "w-10 h-10 mb-6 transition-colors duration-500",
+                        isSelected ? 'text-black/40' : 'text-white/10 group-hover:text-dojo-teal'
+                    )} />
+                    <h3 className="text-xl font-black uppercase tracking-tighter mb-2">{lane.name}</h3>
+                    <p className={cn(
+                        "text-[10px] font-medium uppercase tracking-widest leading-relaxed",
+                        isSelected ? 'text-black/60' : 'text-white/20'
+                    )}>{lane.description}</p>
                   </button>
                 );
               })}
@@ -174,61 +181,66 @@ export default function PostTaskPage() {
           </section>
 
           {/* Mission Details */}
-          <section className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
-            <h2 className="text-lg font-medium mb-6 text-slate-300 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold border border-indigo-500/30">2</span>
-              Mission Parameters
-            </h2>
+          <section className="dojo-card p-12">
+            <div className="flex items-center gap-4 mb-12">
+                 <span className="text-[10px] font-black text-dojo-teal uppercase tracking-[0.3em]">Sector 02</span>
+                 <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Operational Parameters</h2>
+            </div>
             
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-10">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Title</label>
+                <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Mission Title</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Scrape latest sentiment for $ALGO on X"
+                  placeholder="e.g. SENSIMENT ANALYSIS // $ALGO"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
+                  className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-5 rounded-2xl font-black uppercase tracking-tighter text-xl focus:!border-dojo-teal transition-all placeholder:opacity-20"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Instructions (Markdown Supported)</label>
+                <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Neural Instructions [Markdown]</label>
                 <textarea
                   required
-                  rows={4}
-                  placeholder="Describe exactly what needs to be done..."
+                  rows={6}
+                  placeholder="Define execution protocol..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all font-mono text-sm"
+                  className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-6 rounded-3xl font-mono text-sm uppercase tracking-widest focus:!border-dojo-teal transition-all placeholder:opacity-20 leading-relaxed"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                   <label className="block text-sm font-medium text-slate-400 mb-2">Target Agent</label>
-                   <select
-                     value={selectedAgent}
-                     onChange={(e) => setSelectedAgent(e.target.value)}
-                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all text-sm appearance-none"
-                   >
-                     {isLoadingAgents ? (
-                       <option>Loading agents...</option>
-                     ) : agents.length === 0 ? (
-                       <option>No licensed agents found</option>
-                     ) : (
-                       agents.map(a => (
-                         <option key={a.address} value={a.address} className="bg-[#1a1a1e]">
-                           {a.name} ({truncateAddress(a.address, 4)})
-                         </option>
-                       ))
-                     )}
-                   </select>
+                   <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Neural Node [Agent]</label>
+                   <div className="relative">
+                       <select
+                         value={selectedAgent}
+                         onChange={(e) => setSelectedAgent(e.target.value)}
+                         className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-xs appearance-none focus:!border-dojo-teal transition-all cursor-pointer"
+                       >
+                         {isLoadingAgents ? (
+                           <option>SYNCING NODES...</option>
+                         ) : agents.length === 0 ? (
+                           <option>NO ACTIVE NODES</option>
+                         ) : (
+                           agents.map(a => (
+                             <option key={a.address} value={a.address} className="bg-dojo-bg">
+                               {a.name} // {truncateAddress(a.address, 4)}
+                             </option>
+                           ))
+                         )}
+                       </select>
+                       <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
+                           <ArrowRightIcon className="w-4 h-4 rotate-90" />
+                       </div>
+                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Bounty (USDC)</label>
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Service Bounty [USDC]</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -237,27 +249,27 @@ export default function PostTaskPage() {
                       step="0.1"
                       value={bounty}
                       onChange={(e) => setBounty(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all pl-12 shadow-inner"
+                      className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-12 py-5 rounded-2xl font-black tracking-tighter text-2xl focus:!border-dojo-teal transition-all"
                     />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</div>
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 font-black text-xl">$</div>
                   </div>
                 </div>
               </div>
             </div>
           </section>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end mt-12">
             <button
               type="submit"
               disabled={isSubmitting || !activeAddress}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-bold flex items-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20"
+              className="px-12 py-6 bg-white text-black hover:bg-dojo-teal hover:shadow-[0_0_30px_rgba(0,245,212,0.5)] disabled:opacity-20 disabled:grayscale rounded-full font-black uppercase tracking-[0.2em] text-xs flex items-center gap-4 transition-all transform hover:scale-[1.05] active:scale-[0.95]"
             >
-              {isSubmitting ? 'Processing...' : 'Broadcast Mission'}
-              <ArrowRightIcon className="w-5 h-5" />
+              {isSubmitting ? 'BROADCASTING...' : 'BROADCAST MISSION'}
+              <ArrowRightIcon className="w-4 h-4" />
             </button>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   );
 }

@@ -46,50 +46,48 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dojo-bg via-white to-dojo-bg flex items-center justify-center p-4">
+    <div className="min-h-screen bg-dojo-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background glow effect */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-dojo-teal/10 rounded-full blur-[120px] pointer-events-none" />
+      
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="max-w-md w-full"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="max-w-xl w-full z-10 text-center"
       >
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-dojo-heading mb-3">
-            0rca Swarm Dojo
-          </h1>
-          <p className="text-2xl text-gray-500 opacity-70 mb-4">道場</p>
-          <p className="text-gray-600">
-            Premium decentralized AI agent marketplace on Algorand
-          </p>
+        <div className="mb-20">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="text-7xl md:text-8xl font-black text-white mb-6 uppercase tracking-tighter"
+          >
+            0RCA<br/>DOJO
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            transition={{ delay: 0.4, duration: 1 }}
+            className="text-white text-lg font-medium tracking-widest uppercase mb-12"
+          >
+            Premium AI Swarm Infrastructure
+          </motion.p>
         </div>
 
-        <div className="dojo-card p-8 space-y-4">
-          <h2 className="text-2xl font-bold text-center mb-6">
-            Welcome, Sensei
-          </h2>
-
+        <div className="space-y-6 max-w-sm mx-auto">
           <button
             onClick={() => setShowWalletModal(true)}
-            className="w-full p-6 border-2 border-gray-200 rounded-xl hover:border-dojo-teal hover:shadow-dojo-hover transition-all group"
+            className="dojo-button w-full flex items-center justify-center gap-3"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-dojo-teal/10 flex items-center justify-center group-hover:bg-dojo-teal/20 transition-colors">
-                <Wallet className="text-dojo-teal" size={24} />
-              </div>
-              <div className="flex-1 text-left">
-                <h3 className="font-semibold text-lg">Connect Wallet</h3>
-                <p className="text-sm text-gray-600">
-                  Use Pera or Defly wallet
-                </p>
-              </div>
-              <ArrowRight className="text-gray-400 group-hover:text-dojo-teal transition-colors" />
-            </div>
+            <Wallet size={20} />
+            Connect Wallet
           </button>
+          
+          <p className="text-gray-500 text-xs font-medium uppercase tracking-widest">
+            Enter the Dojo as a Sensei
+          </p>
         </div>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          By continuing, you agree to the Dojo Terms of Service
-        </p>
       </motion.div>
 
       <AnimatePresence>
@@ -98,48 +96,48 @@ export default function AuthPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setShowWalletModal(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.18 }}
-              className="bg-dojo-surface rounded-3xl p-8 max-w-md w-full"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              className="dojo-glass rounded-dojo-modal p-10 max-w-md w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-bold mb-6 text-dojo-heading">
+              <h2 className="text-3xl font-bold mb-8 text-white tracking-tight">
                 Connect Wallet
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {wallets?.map((w) => {
                   const walletName = w.metadata?.name || w.id;
-                  const isLoading =
-                    isConnecting && selectedWalletId === w.id;
+                  const isLoading = isConnecting && selectedWalletId === w.id;
 
                   return (
                     <button
                       key={w.id}
                       onClick={() => handleConnect(w.id)}
                       disabled={isConnecting}
-                      className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-dojo-teal transition-all flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                      aria-label={`Connect with ${walletName}`}
+                      className="w-full p-5 bg-white/[0.05] border border-white/10 rounded-2xl hover:bg-white/[0.08] hover:border-dojo-teal/50 transition-all flex items-center justify-between group disabled:opacity-50"
                     >
-                      <div className="w-10 h-10 rounded-full bg-dojo-teal/10 flex items-center justify-center">
-                        <Wallet className="text-dojo-teal" size={20} />
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-dojo-teal/10 flex items-center justify-center group-hover:bg-dojo-teal/20 transition-colors">
+                          <Wallet className="text-dojo-teal" size={20} />
+                        </div>
+                        <span className="font-bold text-lg text-white">
+                          {isLoading ? "Connecting..." : walletName}
+                        </span>
                       </div>
-                      <span className="font-medium text-dojo-heading">
-                        {isLoading ? "Connecting..." : walletName}
-                      </span>
+                      <ArrowRight className="text-gray-600 group-hover:text-dojo-teal transition-all group-hover:translate-x-1" />
                     </button>
                   );
                 })}
               </div>
+              
               <button
                 onClick={() => setShowWalletModal(false)}
-                className="mt-6 w-full text-gray-500 hover:text-gray-700"
+                className="mt-8 w-full text-gray-500 hover:text-white transition-colors font-bold uppercase tracking-widest text-xs"
                 disabled={isConnecting}
               >
                 Cancel

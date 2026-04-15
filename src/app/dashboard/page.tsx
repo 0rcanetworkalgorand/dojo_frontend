@@ -5,7 +5,7 @@ import { Navigation } from "@/components/Navigation";
 import { AgentCard } from "@/components/AgentCard";
 import { LiveFeed } from "@/components/LiveFeed";
 import { SwarmParticles } from "@/components/SwarmParticles";
-import { LANE_LABELS, Lane } from "@/lib/constants";
+import { LANE_LABELS, Lane } from "@/lib/constants/index";
 import { formatNumber, formatAlgoDisplay, truncateAddress } from "@/lib/utils/format";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -14,6 +14,7 @@ import { fetchAgents, fetchStats } from "@/lib/api";
 import { motion } from "framer-motion";
 import { Plus, Zap, TrendingUp, ShieldCheck, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/Button";
+import { cn } from "@/lib/utils/index";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import algosdk from "algosdk";
@@ -156,24 +157,23 @@ export default function DashboardPage() {
       <SwarmParticles />
       <Navigation />
 
-      <main className="max-w-7xl mx-auto px-6 sm:px-8 py-12 relative z-10">
+      <main className="max-w-7xl mx-auto px-6 sm:px-12 py-20 relative z-10">
         {/* Hero Section */}
-        <div className="mb-16">
+        <div className="mb-24">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl font-heading font-bold mb-4 tracking-tight">
-              Welcome to the Dojo, <span className="text-dojo-teal">Sensei {displayName}</span>
+            <h1 className="text-6xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-none">
+              Welcome to the <span className="text-transparent bg-clip-text bg-gradient-to-r from-dojo-teal to-white">Dojo</span>
             </h1>
-            <p className="text-xl text-gray-500 max-w-2xl font-medium leading-relaxed">
-              Your command center for premium AI swarms. Monitor performance, 
-              deploy new agents, and manage your decentralized workspace.
+            <p className="text-xl text-white/40 max-w-2xl font-medium leading-relaxed uppercase tracking-widest text-xs">
+              Sensei {displayName} // Command center for premium AI swarms.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
             {[
               { label: "Active Agents", value: stats?.totalAgents || 0, icon: Zap, color: "text-dojo-teal" },
               { label: "Daily Tasks", value: stats?.tasksToday || 0, icon: TrendingUp, color: "text-dojo-success" },
@@ -184,39 +184,41 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 + 0.3 }}
-                className="dojo-card p-8 flex items-center justify-between group cursor-default"
+                className="dojo-card p-10 flex flex-col justify-between group h-64 hover:shadow-dojo-stat-hover hover:border-dojo-teal hover:bg-dojo-surface/80 hover:scale-[1.02] transition-all duration-500"
               >
-                <div>
-                  <p className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-2 font-heading">
-                    {stat.label}
-                  </p>
-                  <p className={stat.color + " text-3xl font-heading font-bold"}>
+                <div className="flex justify-between items-start">
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">
+                        {stat.label}
+                    </p>
+                    <stat.icon className={stat.color + " opacity-20 group-hover:opacity-100 transition-all duration-500"} size={24} />
+                </div>
+                <p className={"text-5xl font-black text-white tracking-tighter"}>
                     {stat.value}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-2xl group-hover:bg-dojo-teal/5 transition-colors">
-                  <stat.icon className={stat.color} size={28} />
-                </div>
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           {/* Main Content: Agents Grid */}
           <div className="lg:col-span-8">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-heading font-bold text-dojo-heading">Top Ranked Agents</h2>
-              <div className="flex gap-2 p-1 bg-white rounded-xl border border-black/5 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+              <div>
+                <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">Top Ranked</h2>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Verified Swarm Intelligence</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {lanes.map((lane) => (
                   <button
                     key={lane}
                     onClick={() => setSelectedLane(lane)}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-                      selectedLane === lane
-                        ? "bg-dojo-teal text-white shadow-md shadow-dojo-teal/20"
-                        : "text-gray-400 hover:text-dojo-teal hover:bg-gray-50"
-                    }`}
+                    className={cn(
+                        "px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border",
+                        selectedLane === lane
+                          ? "bg-white text-black border-white"
+                          : "bg-white/[0.03] text-white/40 border-white/[0.05] hover:border-white/20 hover:text-white"
+                    )}
                   >
                     {lane === "all" ? "All" : lane}
                   </button>
@@ -243,55 +245,57 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Sidebar */}
-          <div className="lg:col-span-4 space-y-8">
+          <div className="lg:col-span-4 space-y-12">
             {/* Live Feed Panel */}
-            <div className="h-[500px] dojo-card overflow-hidden flex flex-col">
+            <div className="h-[600px] dojo-card flex flex-col">
               <LiveFeed />
             </div>
 
             {/* My Active Agents Quick View */}
-            <div className="dojo-card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-heading font-bold text-dojo-heading">My Active Agents</h3>
-                <Link href="/profile" className="text-xs font-bold text-dojo-teal uppercase tracking-wider hover:underline">
-                  View All
+            <div className="dojo-card p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="font-black text-xs text-white uppercase tracking-[0.2em]">Deployment List</h3>
+                <Link href="/profile" className="text-[10px] font-black text-dojo-teal uppercase tracking-widest hover:text-white transition-colors">
+                  All [→]
                 </Link>
               </div>
               <div className="space-y-4">
                 {myAgents.map((agent) => (
-                  <div key={agent.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer group">
-                    <div className="w-10 h-10 rounded-lg bg-dojo-bg flex items-center justify-center font-bold text-gray-400">
+                  <div key={agent.id} className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.03] hover:bg-white/[0.03] hover:border-white/10 transition-all cursor-pointer group">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.05] flex items-center justify-center font-black text-white/20 group-hover:text-dojo-teal transition-colors">
                       {agent.name.charAt(0)}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-dojo-heading group-hover:text-dojo-teal transition-colors">{agent.name}</p>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">{agent.lane}</p>
+                      <p className="text-sm font-bold text-white tracking-tight group-hover:text-dojo-teal transition-colors">{agent.name}</p>
+                      <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">{agent.lane}</p>
                     </div>
-                    <ArrowRight size={14} className="text-gray-300 group-hover:text-dojo-teal" />
+                    <ArrowRight size={12} className="text-white/20 group-hover:text-dojo-teal transition-all group-hover:translate-x-1" />
                   </div>
                 ))}
+                
                 <Link href="/build">
-                  <button className="w-full mt-4 flex items-center justify-center gap-2 p-4 rounded-2xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-dojo-teal hover:text-dojo-teal hover:bg-dojo-teal/5 transition-all text-sm font-bold">
-                    <Plus size={18} /> Deploy New Agent
+                  <button className="w-full mt-6 flex flex-col items-center justify-center gap-3 p-8 rounded-3xl border border-dashed border-white/10 text-white/30 hover:border-dojo-teal/50 hover:text-dojo-teal hover:bg-dojo-teal/[0.02] transition-all group">
+                    <Plus size={24} className="group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Deploy Agent</span>
                   </button>
                 </Link>
               </div>
             </div>
 
             {/* Stake Shortcut */}
-            <div className="bg-gradient-to-br from-dojo-teal/10 to-dojo-teal/5 p-8 rounded-dojo-modal shadow-lg border border-dojo-teal/10 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <ShieldCheck size={120} className="text-dojo-teal" />
+            <div className="bg-gradient-to-br from-dojo-teal/5 to-transparent p-10 rounded-dojo-modal border border-white/10 relative overflow-hidden group">
+              <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:opacity-10 transition-all duration-700 -rotate-12 group-hover:rotate-0">
+                <ShieldCheck size={180} className="text-dojo-teal" />
               </div>
               <div className="relative z-10">
-                <h3 className="text-xl font-heading font-bold text-dojo-heading mb-2">Commit & Secure</h3>
-                <p className="text-gray-500 text-sm mb-6 leading-relaxed font-medium">
-                  Stake ALGO to increase your Sensei rank and unlock higher task tiers.
+                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Security Protocol</h3>
+                <p className="text-white/40 text-sm mb-10 leading-relaxed font-medium">
+                  Stake ALGO to increase your Sensei rank and unlock higher task tiers in the swarm.
                 </p>
-                <div className="flex flex-col gap-3">
-                  <Button variant="outline" className="w-full border-dojo-teal text-dojo-teal hover:bg-dojo-teal hover:text-white" asChild>
+                <div className="flex flex-col gap-4">
+                  <Button variant="outline" className="w-full !py-4" asChild>
                     <a href="https://bank.testnet.algorand.network/" target="_blank" rel="noopener noreferrer">
-                      Get TestNet ALGO
+                      GET TESTNET ALGO
                     </a>
                   </Button>
                 </div>

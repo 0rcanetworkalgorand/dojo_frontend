@@ -4,9 +4,10 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import algosdk from "algosdk";
 import { Navigation } from "@/components/Navigation";
+import { SwarmParticles } from "@/components/SwarmParticles";
 import { AgentCard } from "@/components/AgentCard";
 import { Button } from "@/components/Button";
-import { LANE_COLORS, LANE_LABELS, Lane, LLM_TIERS, BIDDING_STRATEGIES } from "@/lib/constants";
+import { LANE_COLORS, LANE_LABELS, Lane, LLM_TIERS, BIDDING_STRATEGIES } from "@/lib/constants/index";
 import { LLM_TIER_DISPLAY } from "@/lib/constants/llmTiers";
 import { motion, AnimatePresence } from "framer-motion";
 import { Database, Code, Search, Megaphone, Check, ChevronRight, ChevronLeft, Eye, EyeOff } from "lucide-react";
@@ -132,48 +133,51 @@ export default function BuildPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dojo-bg">
+    <div className="min-h-screen bg-dojo-bg relative overflow-hidden">
+      <SwarmParticles />
       <Navigation />
 
-      <main className="max-w-5xl mx-auto px-6 sm:px-8 py-12">
-        <div className="max-w-3xl mb-12">
-          <h1 className="text-4xl font-heading font-bold mb-3 tracking-tight">Deploy New Agent</h1>
-          <p className="text-gray-500 text-lg font-medium">
-            Configure your autonomous worker. Agents are bound to specific task lanes and tiers.
+      <main className="max-w-7xl mx-auto px-6 sm:px-12 py-20 relative z-10">
+        <div className="max-w-3xl mb-20">
+          <h1 className="text-6xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-none">
+            Deploy<br/>New Agent
+          </h1>
+          <p className="text-white/40 font-medium uppercase tracking-[0.2em] text-xs">
+            Autonomous Configuration // Hive Expansion Protocol
           </p>
         </div>
 
         {/* Step Progress Bar */}
-        <div className="mb-12 relative flex justify-between">
-          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-100 -translate-y-1/2 z-0" />
+        <div className="mb-20 relative flex justify-between max-w-2xl">
+          <div className="absolute top-1/2 left-0 w-full h-px bg-white/10 -translate-y-1/2 z-0" />
           <motion.div 
-            className="absolute top-1/2 left-0 h-0.5 bg-dojo-teal -translate-y-1/2 z-0"
+            className="absolute top-1/2 left-0 h-px bg-dojo-teal -translate-y-1/2 z-0"
             animate={{ width: `${((step - 1) / 2) * 100}%` }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
           />
           {[1, 2, 3].map((s) => (
             <div key={s} className="relative z-10 flex flex-col items-center">
               <div 
                 className={cn(
-                  "w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+                  "w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-500",
                   step >= s 
-                    ? "bg-dojo-teal border-dojo-teal text-white shadow-lg shadow-dojo-teal/20" 
-                    : "bg-white border-gray-200 text-gray-400"
+                    ? "bg-white border-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" 
+                    : "bg-dojo-bg border-white/10 text-white/20"
                 )}
               >
-                {step > s ? <Check size={18} strokeWidth={3} /> : <span className="font-bold">{s}</span>}
+                {step > s ? <Check size={20} strokeWidth={3} /> : <span className="font-black text-xs">{s}</span>}
               </div>
               <span className={cn(
-                "mt-2 text-xs font-bold uppercase tracking-widest transition-colors",
-                step >= s ? "text-dojo-teal" : "text-gray-400"
+                "mt-4 text-[10px] font-black uppercase tracking-widest transition-colors",
+                step >= s ? "text-white" : "text-white/20"
               )}>
-                {s === 1 ? "Lane" : s === 2 ? "Config" : "Deploy"}
+                {s === 1 ? "Sector" : s === 2 ? "Logic" : "Verify"}
               </span>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-start">
           <div className="lg:col-span-7">
             <AnimatePresence mode="wait">
               {step === 1 && (
@@ -183,8 +187,8 @@ export default function BuildPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                 >
-                  <h2 className="text-2xl font-heading font-bold mb-8 text-dojo-heading">Step 1: Select Work Lane</h2>
-                  <div className="grid grid-cols-2 gap-4">
+                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-10">Sector Allocation</h2>
+                  <div className="grid grid-cols-2 gap-6">
                     {(Object.keys(LANE_LABELS) as Lane[]).map((l) => {
                       const Icon = laneIcons[l];
                       const isSelected = lane === l;
@@ -193,39 +197,34 @@ export default function BuildPage() {
                           key={l}
                           onClick={() => setLane(l)}
                           className={cn(
-                            "group p-6 text-left rounded-dojo-modal border-2 transition-all duration-300 relative overflow-hidden",
+                            "group p-8 text-left rounded-dojo-modal border transition-all duration-500 relative overflow-hidden",
                             isSelected 
-                              ? "border-dojo-teal bg-white shadow-xl shadow-dojo-teal/5 ring-4 ring-dojo-teal/5" 
-                              : "border-white bg-white hover:border-dojo-teal/20 hover:shadow-lg shadow-sm"
+                              ? "border-white bg-white text-black" 
+                              : "dojo-card-hover text-white/40 hover:text-white"
                           )}
                         >
-                          {isSelected && (
-                            <motion.div 
-                              layoutId="lane-glow"
-                              className="absolute top-0 right-0 p-2 text-dojo-teal"
-                            >
-                              <Check size={20} strokeWidth={3} />
-                            </motion.div>
-                          )}
                           <div className={cn(
-                            "w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-colors",
-                            isSelected ? "bg-dojo-teal text-white" : "bg-gray-50 text-gray-400 group-hover:bg-dojo-teal/10"
+                            "w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-colors",
+                            isSelected ? "bg-black text-white" : "bg-white/5 text-white/20 group-hover:bg-dojo-teal group-hover:text-black"
                           )}>
-                            <Icon size={24} />
+                            <Icon size={28} />
                           </div>
-                          <h3 className="text-lg font-heading font-bold text-dojo-heading mb-1">{LANE_LABELS[l]}</h3>
-                          <p className="text-sm text-gray-500 leading-snug">Specialized agents for {l} optimization.</p>
+                          <h3 className="text-xl font-black uppercase tracking-tighter mb-2">{LANE_LABELS[l]}</h3>
+                          <p className={cn(
+                            "text-xs font-medium uppercase tracking-widest leading-relaxed",
+                            isSelected ? "text-black/60" : "text-white/20"
+                          )}>Neural optimization for {l}.</p>
                         </button>
                       );
                     })}
                   </div>
-                  <div className="mt-12 flex justify-end">
+                  <div className="mt-16 flex justify-end">
                     <Button 
                       onClick={() => setStep(2)} 
                       disabled={!lane}
-                      className="gap-2"
+                      className="!px-10"
                     >
-                      Configure Agent <ChevronRight size={18} />
+                      CONFIGURE LOGIC [→]
                     </Button>
                   </div>
                 </motion.div>
@@ -237,54 +236,57 @@ export default function BuildPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="space-y-8"
+                  className="space-y-10"
                 >
-                  <h2 className="text-2xl font-heading font-bold mb-8 text-dojo-heading">Step 2: Agent Configuration</h2>
+                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-10">Neural Architecture</h2>
 
-                  <div className="dojo-card p-8">
-                    <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">LLM Tier</label>
-                    <div className="flex gap-4">
+                  <div className="dojo-card p-10">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Intelligence Cluster</label>
+                    <div className="grid grid-cols-2 gap-6">
                       {LLM_TIERS.map((tier) => (
                         <button
                           key={tier}
                           onClick={() => setLlmTier(tier)}
                           className={cn(
-                            "flex-1 p-6 rounded-xl font-heading transition-all border-2 text-left relative overflow-hidden",
+                            "p-8 rounded-3xl transition-all duration-500 border text-left",
                             llmTier === tier
-                              ? "bg-white border-dojo-teal shadow-xl shadow-dojo-teal/5 ring-4 ring-dojo-teal/5"
-                              : "bg-gray-50/50 border-transparent hover:border-gray-200"
+                              ? "bg-white border-white text-black"
+                              : "bg-white/[0.02] border-white/5 text-white/40 hover:border-white/20"
                           )}
                         >
                           <div className={cn(
-                            "text-sm font-bold uppercase tracking-[0.2em] mb-2",
-                            llmTier === tier ? "text-dojo-teal" : "text-gray-400"
+                            "text-[10px] font-black uppercase tracking-[0.2em] mb-4",
+                            llmTier === tier ? "text-black/40" : "text-white/20"
                           )}>
                             {tier}
                           </div>
-                          <div className="text-xs text-gray-500 font-medium mb-3">
-                            {LLM_TIER_DISPLAY[tier].description}
+                          <div className="text-lg font-black uppercase tracking-tighter mb-6">
+                             {LLM_TIER_DISPLAY[tier].model.split('/')[1] || tier}
                           </div>
-                          <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Est. Cost</span>
-                            <span className="text-xs font-bold text-dojo-teal">{LLM_TIER_DISPLAY[tier].estimatedCostPerTask}</span>
+                          <div className={cn(
+                              "pt-6 border-t flex items-center justify-between",
+                              llmTier === tier ? "border-black/10" : "border-white/5"
+                          )}>
+                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Cost/Task</span>
+                            <span className="text-xs font-black">{LLM_TIER_DISPLAY[tier].estimatedCostPerTask}</span>
                           </div>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="dojo-card p-8">
-                    <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">Bidding Strategy</label>
+                  <div className="dojo-card p-10">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Market Protocol</label>
                     <div className="flex gap-4">
                       {BIDDING_STRATEGIES.map((strategy) => (
                         <button
                           key={strategy}
                           onClick={() => setBiddingStrategy(strategy)}
                           className={cn(
-                            "flex-1 py-4 rounded-xl font-heading font-bold transition-all border-2",
+                            "flex-1 py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all duration-500 border",
                             biddingStrategy === strategy
-                              ? "bg-dojo-teal text-white border-dojo-teal shadow-lg shadow-dojo-teal/20"
-                              : "bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100"
+                              ? "bg-white text-black border-white"
+                              : "bg-white/[0.02] text-white/40 border-white/5 hover:border-white/20"
                           )}
                         >
                           {strategy}
@@ -293,8 +295,8 @@ export default function BuildPage() {
                     </div>
                   </div>
 
-                  <div className="dojo-card p-8">
-                    <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">AI Model API Key</label>
+                  <div className="dojo-card p-10">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Neural Key [Auth]</label>
                     <div className="relative">
                       <input
                         type={showApiKey ? "text" : "password"}
@@ -303,49 +305,49 @@ export default function BuildPage() {
                           setOpenaiApiKey(e.target.value);
                           setApiKeyError("");
                         }}
-                        placeholder="sk-... or gsk-..."
+                        placeholder="sk-..."
                         className={cn(
-                          "dojo-input pr-12",
+                          "dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-5 rounded-2xl pr-16 font-mono text-sm uppercase tracking-widest focus:!border-dojo-teal transition-all",
                           apiKeyError && "border-red-500 focus:ring-red-500/10"
                         )}
                       />
                       <button
                         type="button"
                         onClick={() => setShowApiKey(!showApiKey)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-dojo-teal transition-colors"
+                        className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
                       >
                         {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                     {apiKeyError && (
-                      <p className="mt-2 text-xs text-red-500 font-bold uppercase tracking-wider">{apiKeyError}</p>
+                      <p className="mt-4 text-[10px] text-red-500 font-black uppercase tracking-widest">{apiKeyError}</p>
                     )}
-                    <p className="mt-3 text-xs text-gray-400 font-medium italic leading-relaxed">
-                      Encrypted before storage. Never touches the blockchain. Used only to call OpenAI when your agent runs tasks.
+                    <p className="mt-6 text-[10px] text-white/20 font-medium uppercase tracking-widest leading-relaxed">
+                      Secured via AES-256-GCM. Never exposed on-chain.
                     </p>
                   </div>
 
-                  <div className="dojo-card p-8">
-                    <label className="block text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 font-heading">Staking Amount (ALGO)</label>
+                  <div className="dojo-card p-10">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Governance Collateral [ALGO]</label>
                     <div className="relative">
                       <input
                         type="number"
                         value={algoStake}
                         onChange={(e) => setAlgoStake(Number(e.target.value))}
-                        className="dojo-input pl-12 text-lg font-heading font-bold"
+                        className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-10 py-5 rounded-2xl text-2xl font-black tracking-tighter focus:!border-dojo-teal transition-all"
                         min="1"
                         step="1"
                       />
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dojo-teal font-bold">
+                      <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-black text-xl">
                         A
                       </div>
-                      <p className="mt-3 text-xs text-gray-400 font-medium italic">Higher ALGO stake increases your agent's priority in the marketplace.</p>
                     </div>
+                    <p className="mt-6 text-[10px] text-white/20 font-medium uppercase tracking-widest">Stake depth determines marketplace ranking and priority.</p>
                   </div>
 
-                  <div className="mt-12 flex justify-between">
-                    <Button variant="ghost" onClick={() => setStep(1)} className="gap-2">
-                       <ChevronLeft size={18} /> Back
+                  <div className="mt-16 flex justify-between">
+                    <Button variant="ghost" onClick={() => setStep(1)} className="!px-10">
+                       [←] BACK
                     </Button>
                     <Button 
                       onClick={() => {
@@ -357,14 +359,14 @@ export default function BuildPage() {
                         const isOpenAICompatible = openaiApiKey.startsWith("sk-");
                         
                         if (!isGroq && !isOpenAICompatible) {
-                          setApiKeyError("Invalid API key format (should start with sk- or gsk_)");
+                          setApiKeyError("Invalid API key format");
                           return;
                         }
                         setStep(3);
                       }} 
-                      className="gap-2"
+                      className="!px-10"
                     >
-                      Review & Deploy <ChevronRight size={18} />
+                      VERIFY DEPLOY [→]
                     </Button>
                   </div>
                 </motion.div>
@@ -377,39 +379,39 @@ export default function BuildPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                 >
-                  <h2 className="text-2xl font-heading font-bold mb-8 text-dojo-heading">Step 3: Final Review</h2>
+                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-10">Final Verification</h2>
 
-                  <div className="dojo-card p-8 mb-8">
-                    <div className="space-y-6">
-                      <div className="flex justify-between items-center pb-6 border-b border-gray-50 text-lg">
-                        <span className="text-gray-400 font-heading">Lane</span>
-                        <span className="font-heading font-bold uppercase tracking-tight text-dojo-heading">{lane}</span>
+                  <div className="dojo-card p-12 mb-12">
+                    <div className="space-y-8">
+                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
+                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Operational Sector</span>
+                        <span className="text-xl font-black text-white uppercase tracking-tighter">{lane}</span>
                       </div>
-                      <div className="flex justify-between items-center pb-6 border-b border-gray-50 text-lg">
-                        <span className="text-gray-400 font-heading">Intelligence</span>
-                        <span className="font-heading font-bold text-dojo-heading">{llmTier} Tier</span>
+                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
+                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Neural Tier</span>
+                        <span className="text-xl font-black text-white uppercase tracking-tighter">{llmTier}</span>
                       </div>
-                      <div className="flex justify-between items-center pb-6 border-b border-gray-50 text-lg">
-                        <span className="text-gray-400 font-heading">Market Strategy</span>
-                        <span className="font-heading font-bold text-dojo-heading">{biddingStrategy} Focused</span>
+                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
+                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">System Logic</span>
+                        <span className="text-xl font-black text-white uppercase tracking-tighter">{biddingStrategy}</span>
                       </div>
-                      <div className="flex justify-between items-center text-xl">
-                        <span className="text-gray-400 font-heading">Governance Stake</span>
-                        <span className="font-heading font-bold text-dojo-teal">{algoStake}.00 ALGO</span>
+                      <div className="flex justify-between items-center pt-4">
+                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Staked Governance</span>
+                        <span className="text-3xl font-black text-dojo-teal tracking-tighter">{algoStake}.00 ALGO</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-12 flex justify-between">
+                  <div className="mt-16 flex justify-between">
                     <Button variant="ghost" onClick={() => setStep(2)}>
-                      <ChevronLeft size={18} /> Back
+                      [←] BACK
                     </Button>
                     <Button 
                       onClick={handleDeploy} 
                       isLoading={isDeploying}
-                      className="px-12"
+                      className="!px-16"
                     >
-                      Deploy to Dojo Network
+                      INITIALIZE DEPLOYMENT
                     </Button>
                   </div>
                 </motion.div>
@@ -419,22 +421,23 @@ export default function BuildPage() {
 
           <div className="lg:col-span-5 hidden lg:block sticky top-32">
             <div className="relative">
-              <div className="absolute -top-12 left-0 text-xs font-bold uppercase tracking-[0.2em] text-dojo-teal flex items-center gap-2">
-                <span className="w-8 h-px bg-dojo-teal" />
-                Marketplace Preview
+              <div className="absolute -top-16 left-0 text-[10px] font-black uppercase tracking-[0.3em] text-white/20 flex items-center gap-4">
+                <span className="w-12 h-px bg-white/10" />
+                Network Preview
               </div>
-              <div className="pt-4 p-8 rounded-dojo-modal bg-white border border-black/5 shadow-2xl relative">
+              <div className="pt-6 p-10 rounded-dojo-modal bg-white/[0.02] border border-white/5 shadow-2xl relative group overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-dojo-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                 <AgentCard 
                   agent={{
                     ...previewAgent,
                     name: "Sensei's Disciple"
                   }} 
-                  className="shadow-none border-0"
+                  className="shadow-none border-0 group-hover:scale-[1.02] transition-transform duration-700"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-dojo-modal" />
+                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-dojo-bg to-transparent pointer-events-none" />
               </div>
-              <p className="mt-6 text-center text-sm text-gray-400 font-medium italic">
-                This is how your agent will appear to licensees in the marketplace.
+              <p className="mt-10 text-center text-[10px] text-white/20 font-black uppercase tracking-[0.2em]">
+                Verified Node Entry // Dojo Registry
               </p>
             </div>
           </div>

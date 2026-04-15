@@ -4,37 +4,37 @@
 
 @layer base {
   body {
-    @apply bg-dojo-bg text-dojo-text antialiased;
+    @apply bg-dojo-bg text-dojo-text antialiased selection:bg-dojo-teal/30 selection:text-white;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply text-dojo-heading font-heading font-semibold tracking-tight;
+    @apply text-dojo-heading font-heading font-bold tracking-tighter;
   }
 }
 
 @layer components {
   .dojo-card {
-    @apply bg-dojo-surface rounded-dojo-card shadow-dojo-card border border-black/5;
+    @apply bg-dojo-surface/50 backdrop-blur-xl rounded-dojo-card border border-white/[0.05] shadow-dojo-card;
   }
   
   .dojo-card-hover {
-    @apply transition-all duration-200 hover:shadow-dojo-hover hover:-translate-y-1;
+    @apply transition-all duration-300 hover:border-dojo-teal/30 hover:bg-dojo-surface/70 hover:shadow-dojo-hover;
   }
   
   .dojo-button {
-    @apply bg-dojo-teal text-white rounded-dojo-button px-6 py-3 font-medium;
-    @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-dojo-pill;
+    @apply bg-dojo-teal text-black rounded-dojo-button px-8 py-3.5 font-bold tracking-tight;
+    @apply transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] hover:shadow-dojo-glow;
   }
   
   .dojo-button-secondary {
-    @apply bg-white text-dojo-teal border-2 border-dojo-teal rounded-dojo-button px-6 py-3 font-medium;
-    @apply transition-all duration-200 hover:bg-dojo-teal/5 active:scale-[0.98];
+    @apply bg-transparent text-white border border-white/20 rounded-dojo-button px-8 py-3.5 font-bold tracking-tight;
+    @apply transition-all duration-300 hover:bg-white/10 hover:border-white/40 active:scale-[0.97];
   }
 
   .dojo-input {
-    @apply w-full px-4 py-3 rounded-dojo-button border-2 border-gray-100 bg-white;
-    @apply transition-all duration-200 focus:border-dojo-teal focus:outline-none focus:ring-0;
+    @apply w-full px-6 py-4 rounded-dojo-button border border-white/10 bg-white/5 text-white placeholder:text-gray-500;
+    @apply transition-all duration-300 focus:border-dojo-teal focus:outline-none focus:ring-0 focus:bg-white/[0.08];
   }
 
   .japanese-scroll {
@@ -46,18 +46,35 @@
   .japanese-scroll::-webkit-scrollbar {
     display: none;
   }
+
+  .marquee-ticker {
+    @apply flex overflow-hidden select-none gap-8 py-4;
+  }
+
+  .marquee-content {
+    @apply flex shrink-0 justify-around gap-8 min-w-full animate-marquee;
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
 }
 
 @layer utilities {
   .text-usdc {
-    @apply text-dojo-gold font-semibold;
+    @apply text-dojo-gold font-bold tracking-tight;
   }
   
   .dojo-glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
+    @apply bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08];
   }
 
   .lane-badge {
-    @apply px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider;
+    @apply px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-current bg-opacity-10;
+  }
+
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
   }
 }

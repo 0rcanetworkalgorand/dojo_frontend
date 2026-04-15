@@ -4,6 +4,8 @@ import React from 'react';
 import { TaskState, LaneType, Task } from '@/lib/types';
 import { BeakerIcon, CodeBracketIcon, CircleStackIcon, EnvelopeIcon, ClockIcon, UserIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { formatAlgoDisplay } from '@/lib/utils/format';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 
 interface TaskCardProps {
@@ -34,68 +36,87 @@ export default function TaskCard({ task, onPayWinner, isClient }: TaskCardProps)
   const stateInfo = STATE_MAPPING[task.state] || { label: task.state, color: 'text-slate-400', bg: 'bg-slate-400/10' };
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${laneInfo.border} bg-white/5 backdrop-blur-md p-6 transition-all hover:bg-white/[0.08] group`}>
-      {/* Background Glow */}
-      <div className={`absolute -right-12 -top-12 w-32 h-32 blur-3xl opacity-10 rounded-full ${laneInfo.bg.replace('/10', '')}`} />
-
-      <div className="flex justify-between items-start mb-4">
-        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${laneInfo.bg} ${laneInfo.color} border ${laneInfo.border}`}>
-          <Icon className="w-3 h-3" />
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className={cn(
+        "dojo-card dojo-card-hover p-8 flex flex-col relative group",
+        laneInfo.border.replace('border-', 'border-') // Ensure it uses current theme borders
+      )}
+    >
+      <div className="flex justify-between items-start mb-8">
+        <div className={cn(
+          "flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+          laneInfo.bg.replace('/10', '/5'),
+          laneInfo.color,
+          laneInfo.border
+        )}>
+          <Icon className="w-3.5 h-3.5" />
           {laneInfo.name}
         </div>
-        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${stateInfo.bg} ${stateInfo.color}`}>
+        <div className={cn(
+          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/[0.05] border border-white/[0.05]",
+          stateInfo.color
+        )}>
           {stateInfo.label}
         </div>
       </div>
 
-      <h3 className="text-xl font-bold mb-2 group-hover:text-blue-400 transition-colors line-clamp-1">
-        {task.title || `Mission ${task.id.substring(0, 8)}`}
+      <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4 group-hover:text-dojo-teal transition-colors line-clamp-1">
+        {task.title || `MISSION ${task.id.slice(0, 8)}`}
       </h3>
       
-      <p className="text-slate-400 text-sm mb-6 line-clamp-2 min-h-[40px]">
-        {task.description || 'No description provided.'}
+      <p className="text-white/50 text-sm font-medium leading-relaxed mb-8 line-clamp-2 min-h-[44px]">
+        {task.description || 'No specialized metadata provided.'}
       </p>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="flex items-center gap-2 text-slate-300">
-          <CurrencyDollarIcon className="w-4 h-4 text-slate-500" />
-          <span className="text-lg font-mono font-bold">{formatAlgoDisplay(Number(task.bountyUsdc))}</span>
+      <div className="grid grid-cols-2 gap-6 mb-10">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase font-black tracking-widest text-white/30 flex items-center gap-2">
+            <CurrencyDollarIcon className="w-3 h-3 opacity-50" /> Bounty
+          </p>
+          <p className="text-lg font-bold text-dojo-gold tracking-tight">{formatAlgoDisplay(Number(task.bountyUsdc))}</p>
         </div>
-        <div className="flex items-center gap-2 text-slate-400 text-xs">
-          <ClockIcon className="w-4 h-4" />
-          <span>{new Date(task.deadline).toLocaleDateString()}</span>
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase font-black tracking-widest text-white/30 flex items-center gap-2">
+            <ClockIcon className="w-3 h-3 opacity-50" /> Deadline
+          </p>
+          <p className="text-lg font-bold text-white/60 tracking-tight">
+            {new Date(task.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+          </p>
         </div>
       </div>
 
-      <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                <UserIcon className="w-4 h-4 text-slate-500" />
+      <div className="mt-auto pt-6 border-t border-white/[0.05] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/[0.05] flex items-center justify-center">
+                <UserIcon className="w-4 h-4 text-white/40" />
             </div>
             <div className="flex flex-col">
-                <span className="text-[10px] text-slate-500 uppercase font-bold">Client</span>
-                <span className="text-xs font-mono text-slate-300">{task.clientAddress.substring(0, 6)}...</span>
+                <span className="text-[9px] text-white/30 uppercase font-black tracking-widest">Client</span>
+                <span className="text-xs font-mono text-white/60">{task.clientAddress.slice(0, 6)}...</span>
             </div>
         </div>
 
         {task.state === TaskState.CREATED && task.workerAddress && onPayWinner && isClient && (
             <button
                 onClick={() => onPayWinner(task.id, task.workerAddress!, task.bountyUsdc)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all shadow-lg shadow-blue-600/20"
+                className="dojo-button !py-2.5 !px-5 !text-[10px]"
             >
-                Lock Bounty
+                LOCK BOUNTY
             </button>
         )}
 
         {task.workerAddress && task.state !== TaskState.CREATED && (
-            <div className="flex items-center gap-2 text-right">
+            <div className="flex items-center gap-3 text-right">
                 <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold">Agent</span>
-                    <span className="text-xs font-mono text-emerald-400">{task.workerAddress.substring(0, 6)}...</span>
+                    <span className="text-[9px] text-white/30 uppercase font-black tracking-widest">Agent</span>
+                    <span className="text-xs font-mono text-dojo-teal">{task.workerAddress.slice(0, 6)}...</span>
                 </div>
             </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { Lane, LANE_LABELS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { Lane, LANE_LABELS } from "@/lib/constants/index";
+import { cn } from "@/lib/utils/index";
 
 interface LaneBadgeProps {
   lane: Lane;

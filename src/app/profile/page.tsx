@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
+import { SwarmParticles } from "@/components/SwarmParticles";
 import { formatAlgoDisplay, formatNumber, truncateAddress } from "@/lib/utils/format";
-import { RANK_TIERS } from "@/lib/constants";
-import { Award, TrendingUp, BarChart3, Clock, DollarSign, ShieldCheck, Zap, Diamond, ChevronRight, Settings, Wallet } from "lucide-react";
+import { RANK_TIERS } from "@/lib/constants/index";
+import { Award, TrendingUp, BarChart3, Clock, DollarSign, ShieldCheck, Zap, Diamond, ChevronRight, Settings, Wallet, ArrowRight, Plus } from "lucide-react";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AgentCard } from "@/components/AgentCard";
 import { Button } from "@/components/Button";
 import { fetchAgents, fetchStats } from "@/lib/api";
 import { useWallet } from "@txnlab/use-wallet-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/index";
+import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { useLiveFeed } from "@/hooks/useLiveFeed";
 import algosdk from "algosdk";
@@ -101,76 +103,73 @@ export default function ProfilePage() {
   const rankInfo = RANK_TIERS["apprentice"]; // Default to apprentice or compute from stats
 
   return (
-    <div className="min-h-screen bg-dojo-bg">
+    <div className="min-h-screen bg-dojo-bg relative overflow-hidden">
+      <SwarmParticles />
       <Navigation />
 
-      <main className="max-w-7xl mx-auto px-6 sm:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-6 sm:px-12 py-20 relative z-10">
         {/* Profile Header */}
-        <div className="dojo-card p-10 mb-12 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-            <Award size={240} className="text-dojo-heading" />
+        <div className="dojo-card p-12 mb-16 relative overflow-hidden group">
+          <div className="absolute -right-20 -bottom-20 p-8 opacity-[0.02] pointer-events-none group-hover:opacity-[0.05] transition-opacity duration-1000">
+            <Award size={480} className="text-white" />
           </div>
           
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-10 relative z-10">
-            <div className="relative group">
-              <div className="w-32 h-32 rounded-full bg-[#FAF9F5] border-4 border-white shadow-xl flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-dojo-teal/20 to-dojo-gold/20 opacity-50 group-hover:opacity-100 transition-opacity" />
-                <Award size={64} className="text-dojo-heading relative z-10" />
+          <div className="flex flex-col lg:flex-row items-center lg:items-start gap-12 relative z-10">
+            <div className="relative">
+              <div className="w-40 h-40 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center relative overflow-hidden group/avatar">
+                <div className="absolute inset-0 bg-gradient-to-br from-dojo-teal/10 to-transparent opacity-50 group-hover/avatar:opacity-100 transition-opacity" />
+                <Award size={80} className="text-white/20 relative z-10 group-hover/avatar:text-dojo-teal transition-colors duration-500" />
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-dojo-teal text-white p-2 rounded-full shadow-lg border-2 border-white">
-                <ShieldCheck size={20} />
+              <div className="absolute -bottom-2 -right-2 bg-dojo-teal text-black p-2.5 rounded-full shadow-[0_0_15px_rgba(0,245,212,0.4)] border border-white/20">
+                <ShieldCheck size={24} />
               </div>
             </div>
 
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-                <h1 className="text-4xl font-heading font-bold text-dojo-heading">
-                  Sensei <span className="text-dojo-teal">{activeAccount?.address ? truncateAddress(activeAccount.address, 6) : "Sensei"}</span>
+            <div className="flex-1 text-center lg:text-left">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-6 mb-8">
+                <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
+                  Sensei <span className="text-dojo-teal">{activeAccount?.address ? truncateAddress(activeAccount.address, 6) : "Unknown"}</span>
                 </h1>
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-dojo-heading text-white rounded-full text-xs font-bold uppercase tracking-widest shadow-lg shadow-black/10 mx-auto md:mx-0">
+                <div className="px-5 py-1.5 bg-white text-black rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl mx-auto lg:mx-0">
                   {rankInfo.label}
                 </div>
               </div>
               
-              <div className="flex flex-wrap justify-center md:justify-start gap-8 mt-8">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-dojo-teal/10 rounded-xl text-dojo-teal">
-                    <Zap size={20} />
+              <div className="flex flex-wrap justify-center lg:justify-start gap-12 mt-10">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/[0.05] rounded-2xl text-dojo-teal">
+                    <Zap size={24} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Total Tasks</p>
-                    <p className="text-xl font-heading font-bold text-dojo-heading">{formatNumber(stats?.tasksToday || 0)}</p>
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Total Tasks</p>
+                    <p className="text-2xl font-bold text-white tracking-tight">{formatNumber(stats?.tasksToday || 0)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-dojo-success/10 rounded-xl text-dojo-success">
-                    <TrendingUp size={20} />
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/[0.05] rounded-2xl text-dojo-success">
+                    <TrendingUp size={24} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Success Rate</p>
-                    <p className="text-xl font-heading font-bold text-dojo-heading">100%</p>
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Success Rate</p>
+                    <p className="text-2xl font-bold text-dojo-success tracking-tight">100%</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-dojo-gold/10 rounded-xl text-dojo-gold">
-                    <Diamond size={20} />
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/[0.05] rounded-2xl text-dojo-gold">
+                    <Diamond size={24} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Total Yield</p>
-                    <p className="text-xl font-heading font-bold text-dojo-heading">{formatAlgoDisplay(stats?.usdcVolume || 0)}</p>
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Swarm Yield</p>
+                    <p className="text-2xl font-bold text-dojo-gold tracking-tight">{formatAlgoDisplay(stats?.usdcVolume || 0)}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <Button 
-                variant="outline" 
-                className="gap-2 border-dojo-teal text-dojo-teal hover:bg-dojo-teal/5"
-                asChild
-              >
+            <div className="flex flex-col gap-4">
+              <Button variant="outline" className="!px-10 group/btn" asChild>
                 <a href="https://bank.testnet.algorand.network/" target="_blank" rel="noopener noreferrer">
-                  <Zap size={18} /> Get TestNet ALGO
+                  GET TESTNET ALGO <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
             </div>
@@ -178,8 +177,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs System */}
-        <div className="mb-12">
-          <div className="flex gap-4 p-1 bg-white rounded-2xl border border-black/5 shadow-sm mb-8 w-fit mx-auto md:mx-0">
+        <div className="mb-20">
+          <div className="flex flex-wrap gap-2 mb-12 w-fit mx-auto lg:mx-0">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -188,14 +187,14 @@ export default function ProfilePage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all",
+                    "flex items-center gap-3 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border",
                     isActive 
-                      ? "bg-dojo-teal text-white shadow-lg shadow-dojo-teal/20" 
-                      : "text-gray-400 hover:text-dojo-teal hover:bg-gray-50"
+                      ? "bg-white text-black border-white shadow-xl" 
+                      : "bg-white/[0.03] text-white/40 border-white/[0.05] hover:border-white/20 hover:text-white"
                   )}
                 >
-                  <Icon size={16} />
-                  <span className="hidden md:inline">{tab.label}</span>
+                  <Icon size={14} />
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
@@ -206,39 +205,40 @@ export default function ProfilePage() {
               {activeTab === "agents" && (
                 <motion.div
                   key="agents"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
                   {agents.map((agent) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}
-                  <div className="border-2 border-dashed border-gray-200 rounded-dojo-modal flex flex-col items-center justify-center p-8 text-center bg-white/50 hover:border-dojo-teal/30 transition-colors group cursor-pointer">
-                    <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-4 group-hover:bg-dojo-teal/10 transition-colors">
-                      <Zap className="text-gray-300 group-hover:text-dojo-teal" />
+                  <Link href="/build" className="group h-full">
+                    <div className="h-full dojo-card-hover border-2 border-dashed border-white/10 rounded-dojo-modal flex flex-col items-center justify-center p-12 text-center bg-white/[0.01] transition-all duration-500">
+                      <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-dojo-teal/10 transition-all">
+                        <Plus className="text-white/20 group-hover:text-dojo-teal" />
+                      </div>
+                      <h3 className="font-black text-white uppercase tracking-tighter text-lg">Deploy Next Agent</h3>
+                      <p className="text-[10px] text-white/30 uppercase tracking-widest mt-2">Expand Hive Capability</p>
                     </div>
-                    <h3 className="font-heading font-bold text-dojo-heading">Deploy Next Agent</h3>
-                    <p className="text-xs text-gray-400 mt-1">Scale your autonomous swarm</p>
-                  </div>
+                  </Link>
                 </motion.div>
               )}
 
               {activeTab === "income" && (
                 <motion.div
                   key="income"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
                   className="dojo-card overflow-hidden"
                 >
-                  <div className="divide-y divide-gray-50">
-                    <div className="p-20 text-center text-gray-400 font-bold">
-                      No earnings records found.
-                    </div>
+                  <div className="p-40 text-center">
+                    <p className="text-white/20 font-black uppercase tracking-[0.2em] text-sm">No transaction records detected.</p>
                   </div>
-                  <button className="w-full p-4 text-sm font-bold text-dojo-teal hover:bg-dojo-teal/5 border-t border-gray-50 transition-colors flex items-center justify-center gap-2">
-                    Load More History <ChevronRight size={16} />
+                  <button className="w-full py-6 text-[10px] font-black uppercase tracking-widest text-dojo-teal hover:bg-white/[0.03] border-t border-white/[0.05] transition-all flex items-center justify-center gap-3">
+                    Sync Ledger Data <ChevronRight size={14} />
                   </button>
                 </motion.div>
               )}
@@ -246,63 +246,64 @@ export default function ProfilePage() {
               {activeTab === "chart" && (
                 <motion.div
                   key="chart"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="dojo-card p-10"
+                  exit={{ opacity: 0, y: -20 }}
+                  className="dojo-card p-12"
                 >
-                  <div className="flex items-center justify-between mb-12">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
                     <div>
-                      <h3 className="text-xl font-heading font-bold text-dojo-heading">Earnings Trajectory</h3>
-                      <p className="text-sm text-gray-400">Total swarm revenue over the last 8 months</p>
+                        <p className="text-[10px] font-black text-dojo-teal uppercase tracking-[0.3em] mb-4">Performance Metrics</p>
+                        <h3 className="text-4xl font-black text-white uppercase tracking-tighter">Yield Trajectory</h3>
                     </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-heading font-bold text-dojo-teal">+184%</p>
-                      <p className="text-[10px] font-bold text-dojo-success uppercase tracking-widest">Growing</p>
+                    <div className="text-left md:text-right">
+                      <p className="text-5xl font-black text-dojo-teal tracking-tighter mb-1">+184%</p>
+                      <p className="text-[10px] font-black text-dojo-success uppercase tracking-[0.2em]">Sustained Growth</p>
                     </div>
                   </div>
                   
-                  <div className="h-[400px] w-full">
+                  <div className="h-[450px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#00BFA5" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#00BFA5" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#00F5D4" stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor="#00F5D4" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
                         <XAxis 
                           dataKey="month" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
-                          dy={10}
+                          tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 900, textAnchor: 'middle' }}
+                          dy={20}
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
-                          tickFormatter={(val) => `$${val}k`}
+                          tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 900 }}
+                          tickFormatter={(val) => `$${val}K`}
                         />
                         <Tooltip 
                           contentStyle={{ 
-                            backgroundColor: '#0F172A', 
-                            border: 'none', 
-                            borderRadius: '16px',
+                            backgroundColor: '#0A0A0A', 
+                            border: '1px solid rgba(255,255,255,0.1)', 
+                            borderRadius: '20px',
                             color: '#fff',
-                            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                            padding: '20px',
+                            backdropFilter: 'blur(20px)'
                           }}
-                          itemStyle={{ color: '#00BFA5', fontWeight: 700 }}
+                          itemStyle={{ color: '#00F5D4', fontWeight: 900, textTransform: 'uppercase', fontSize: '12px' }}
                           formatter={(value) => [`$${value}k`, "Earnings"]}
                         />
                         <Area 
                           type="monotone" 
                           dataKey="earnings" 
-                          stroke="#00BFA5" 
-                          strokeWidth={4} 
+                          stroke="#00F5D4" 
+                          strokeWidth={6} 
                           fillOpacity={1} 
                           fill="url(#colorEarnings)" 
-                          animationDuration={1500}
+                          animationDuration={2000}
                         />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -313,17 +314,17 @@ export default function ProfilePage() {
               {activeTab === "history" && (
                 <motion.div
                   key="history"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="dojo-card p-20 text-center"
+                  exit={{ opacity: 0, y: -20 }}
+                  className="dojo-card p-32 text-center"
                 >
-                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Clock className="text-gray-300" size={40} />
+                  <div className="w-24 h-24 bg-white/[0.03] border border-white/[0.05] rounded-full flex items-center justify-center mx-auto mb-8">
+                    <Clock className="text-white/10" size={48} />
                   </div>
-                  <h3 className="text-xl font-heading font-bold text-dojo-heading mb-2">No past commitments found</h3>
-                  <p className="text-gray-400 max-w-sm mx-auto text-sm leading-relaxed">
-                    Once you start committing agents to long-term tasks, your history and uptime stats will appear here.
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Historical Gap</h3>
+                  <p className="text-white/30 max-w-sm mx-auto text-sm font-medium leading-relaxed uppercase tracking-widest text-xs">
+                    Commit agents to long-term operations to populate swarm logs.
                   </p>
                 </motion.div>
               )}

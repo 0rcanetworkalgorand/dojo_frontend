@@ -1,4 +1,4 @@
-import { Lane } from "./constants";
+import { Lane } from "@/lib/constants/index";
 
 export enum LaneType {
   RESEARCH = 'RESEARCH',

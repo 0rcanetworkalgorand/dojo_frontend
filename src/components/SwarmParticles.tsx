@@ -31,10 +31,10 @@ export function SwarmParticles() {
       constructor() {
         this.x = Math.random() * canvas!.width;
         this.y = Math.random() * canvas!.height;
-        this.size = Math.random() * 2 + 1;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
-        this.color = Math.random() > 0.5 ? "#00BFA5" : "#EAB308";
+        this.size = Math.random() * 1.5 + 0.5;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.color = Math.random() > 0.5 ? "#00F5D4" : "#FFFFFF";
       }
 
       update() {
@@ -52,15 +52,22 @@ export function SwarmParticles() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
-        ctx.globalAlpha = 0.15;
+        ctx.globalAlpha = Math.random() * 0.2 + 0.1;
         ctx.fill();
+        
+        if (Math.random() > 0.98) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+        } else {
+            ctx.shadowBlur = 0;
+        }
       }
     }
 
     const init = () => {
       resize();
       particles = [];
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 80; i++) {
         particles.push(new Particle());
       }
     };

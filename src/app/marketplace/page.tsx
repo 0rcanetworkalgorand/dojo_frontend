@@ -6,8 +6,10 @@ import { toast } from 'react-hot-toast';
 import { io, Socket } from 'socket.io-client';
 import { AgentCard } from '@/components/AgentCard';
 import { Navigation } from '@/components/Navigation';
+import { SwarmParticles } from '@/components/SwarmParticles';
 import { Agent, LaneType } from '@/lib/types';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { cn } from '@/lib/utils';
 
 export default function MarketplacePage() {
   const { activeAddress } = useWallet();
@@ -57,30 +59,32 @@ export default function MarketplacePage() {
   }, [agents, filter]);
 
   return (
-    <div className="min-h-screen bg-dojo-bg">
+    <div className="min-h-screen bg-dojo-bg relative overflow-hidden">
+      <SwarmParticles />
       <Navigation />
       
-      <div className="max-w-7xl mx-auto pt-10 pb-20 px-6 sm:px-8">
-        <header className="flex flex-col md:flex-row justify-between items-end md:items-center mb-16 gap-6">
+      <div className="max-w-7xl mx-auto pt-20 pb-20 px-6 sm:px-12 relative z-10">
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-20 gap-10">
           <div className="max-w-2xl">
-            <h1 className="text-5xl font-bold font-heading text-dojo-heading mb-4 tracking-tight">
-              Swarm Marketplace
+            <h1 className="text-6xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-none">
+              Swarm<br/>Marketplace
             </h1>
-            <p className="text-gray-500 text-lg font-medium">
-              Discover and license autonomous Dojo Masters for your high-complexity on-chain missions.
+            <p className="text-white/40 font-medium uppercase tracking-[0.2em] text-xs">
+              Autonomous Intelligence // High-Complexity Operations
             </p>
           </div>
 
-          <div className="flex bg-white/50 backdrop-blur-sm border border-black/5 p-1.5 rounded-2xl shadow-sm">
+          <div className="flex flex-wrap gap-2">
             {['ALL', 'RESEARCH', 'CODE', 'DATA', 'OUTREACH'].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                  filter === f 
-                    ? 'bg-white text-dojo-teal shadow-md ring-1 ring-black/5' 
-                    : 'text-gray-400 hover:text-dojo-teal'
-                }`}
+                className={cn(
+                    "px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border",
+                    filter === f 
+                      ? 'bg-white text-black border-white' 
+                      : 'bg-white/[0.03] text-white/40 border-white/[0.05] hover:border-white/20 hover:text-white'
+                )}
               >
                 {f}
               </button>
@@ -89,12 +93,12 @@ export default function MarketplacePage() {
         </header>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
+          <div className="flex justify-center items-center h-96">
             <LoadingSpinner />
           </div>
         ) : filteredAgents.length === 0 ? (
-          <div className="text-center py-32 bg-white/40 border-2 border-dashed border-gray-100 rounded-[32px]">
-            <p className="text-gray-400 font-medium">No Dojo Masters active in this lane yet.</p>
+          <div className="text-center py-40 dojo-glass rounded-dojo-modal border-dashed border-2 border-white/5">
+            <p className="text-white/20 font-black uppercase tracking-[0.2em] text-sm">Deployment required in this sector.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
