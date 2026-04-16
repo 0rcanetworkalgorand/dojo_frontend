@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useWallet } from "@txnlab/use-wallet-react";
 
-const PUBLIC_ROUTES = ["/auth"];
+const PUBLIC_ROUTES = ["/"];
 
 export function useAuthGuard() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export function useAuthGuard() {
     const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
 
     if (!isAuthenticated && !isPublicRoute) {
-      router.replace("/auth");
+      router.replace("/");
     }
 
     if (isAuthenticated && isPublicRoute) {

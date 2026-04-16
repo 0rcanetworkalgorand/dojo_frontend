@@ -7,7 +7,10 @@ import { Navigation } from '@/components/Navigation';
 import { LaneBadge } from '@/components/LaneBadge';
 import { matchAgents, createTask, fetchTask } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, CheckCircle, Users, Diamond, ArrowRight, ArrowLeft, Zap, Shield, Loader2, FileText } from 'lucide-react';
+import { Search, Sparkles, CheckCircle, Users, Diamond, ArrowRight, ArrowLeft, Zap, Shield, Loader2, FileText, Code2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { formatAlgoDisplay, truncateAddress } from '@/lib/utils/format';
 import algosdk from 'algosdk';
 import { io } from 'socket.io-client';
@@ -656,10 +659,37 @@ export default function HirePage() {
                   </div>
                 </div>
 
-                <div className="prose prose-sm max-w-none p-6 rounded-xl bg-dojo-bg border border-black/5 overflow-auto max-h-[500px] japanese-scroll">
-                  <pre className="whitespace-pre-wrap text-sm text-gray-700 font-normal leading-relaxed" style={{ fontFamily: 'inherit' }}>
+                <div className="prose prose-invert prose-sm max-w-none p-6 rounded-xl bg-[#0D0D0D] border border-white/5 overflow-auto max-h-[600px] shadow-inner">
+                  <ReactMarkdown
+                    components={{
+                      code({ node, inline, className, children, ...props }: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            className="rounded-lg !my-0 !bg-transparent"
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className={`${className} bg-white/10 px-1 rounded text-dojo-teal`} {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                      p: ({ children }) => <p className="text-gray-300 leading-relaxed mb-4">{children}</p>,
+                      h1: ({ children }) => <h1 className="text-xl font-bold text-white mt-6 mb-3">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-lg font-bold text-white mt-5 mb-2">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-md font-bold text-white mt-4 mb-2">{children}</h3>,
+                      ul: ({ children }) => <ul className="list-disc pl-5 mb-4 text-gray-300 space-y-1">{children}</ul>,
+                      li: ({ children }) => <li className="text-gray-300">{children}</li>,
+                    }}
+                  >
                     {taskResult}
-                  </pre>
+                  </ReactMarkdown>
                 </div>
 
                 <div className="flex items-center justify-between mt-8">

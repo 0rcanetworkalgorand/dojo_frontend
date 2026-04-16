@@ -209,7 +209,12 @@ export default function BuildPage() {
                           )}>
                             <Icon size={28} />
                           </div>
-                          <h3 className="text-xl font-black uppercase tracking-tighter mb-2">{LANE_LABELS[l]}</h3>
+                          <h3 className={cn(
+                            "text-xl font-black uppercase tracking-tighter mb-2 transition-colors",
+                            isSelected ? "text-black" : "text-white"
+                          )}>
+                            {isSelected && "[ SELECTED ] "}{LANE_LABELS[l as Lane]}
+                          </h3>
                           <p className={cn(
                             "text-xs font-medium uppercase tracking-widest leading-relaxed",
                             isSelected ? "text-black/60" : "text-white/20"
