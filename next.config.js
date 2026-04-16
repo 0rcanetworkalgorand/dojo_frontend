@@ -15,7 +15,7 @@ const nextConfig = {
       "@walletconnect/sign-client": path.resolve(__dirname, 'src/lib/dummy-module.ts'),
       "magic-sdk": path.resolve(__dirname, 'src/lib/dummy-module.ts'),
       "@magic-ext/algorand": path.resolve(__dirname, 'src/lib/dummy-module.ts'),
-      "lute-connect": path.resolve(__dirname, 'src/lib/dummy-module.ts'),
+      "lute-connect": path.resolve(__dirname, 'src/lib/lute-bridge.ts'),
       "@perawallet/connect-beta": path.resolve(__dirname, 'src/lib/dummy-module.ts'),
       "@algorandfoundation/liquid-auth-use-wallet-client": path.resolve(__dirname, 'src/lib/dummy-module.ts'),
       "daffi-connect": path.resolve(__dirname, 'src/lib/dummy-module.ts'),

@@ -81,7 +81,7 @@ export function WalletModal({ open, onOpenChange }: WalletModalProps) {
                               {wallet.metadata.name}
                             </h4>
                             <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-1">
-                              {wallet.id === "pera" ? "Mobile Protocol" : "Defly Engine"}
+                              {wallet.id === "pera" ? "Mobile Protocol" : wallet.id === "defly" ? "Defly Engine" : "Web Proxy"}
                             </p>
                           </div>
                         </div>

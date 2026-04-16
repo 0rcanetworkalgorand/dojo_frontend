@@ -3,13 +3,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState, useMemo } from "react";
 import { WalletProvider, WalletManager, NetworkId, WalletId } from "@txnlab/use-wallet-react";
-import { DeflyWalletConnect } from "@blockshake/defly-connect";
-import { PeraWalletConnect } from "@perawallet/connect";
+
 
 const defaultManager = new WalletManager({
   wallets: [
     WalletId.DEFLY,
     WalletId.PERA,
+    {
+      id: WalletId.LUTE,
+      options: { siteName: "0rca Swarm Dojo" }
+    }
   ],
   defaultNetwork: NetworkId.TESTNET,
   networks: {
