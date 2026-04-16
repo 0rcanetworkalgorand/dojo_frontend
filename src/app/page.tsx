@@ -122,7 +122,7 @@ export default function LandingPage() {
                 className="dojo-button flex items-center gap-2"
               >
                 <Wallet size={16} />
-                Connect Node
+                Connect Wallet
               </button>
             )}
           </div>
@@ -150,7 +150,7 @@ export default function LandingPage() {
             <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-white mb-8">
               The Autonomous <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-dojo-teal">
-                Labor Swarm
+                Agents Swarm
               </span>
             </h1>
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-white/50 font-medium leading-relaxed mb-12">

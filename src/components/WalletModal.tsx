@@ -48,7 +48,7 @@ export function WalletModal({ open, onOpenChange }: WalletModalProps) {
                   <div className="flex items-center justify-between mb-10">
                     <div>
                       <Dialog.Title className="text-3xl font-black text-white uppercase tracking-tighter">
-                        Connect Node
+                        Connect Wallet
                       </Dialog.Title>
                       <Dialog.Description className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mt-2">
                          Protocol // Authorized Access Only
