@@ -30,13 +30,18 @@ export default function LandingPage() {
   const { activeAccount } = useWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Redirect if already connected
   useEffect(() => {
-    if (activeAccount) {
+    if (mounted && activeAccount) {
       router.push("/dashboard");
     }
-  }, [activeAccount, router]);
+  }, [mounted, activeAccount, router]);
 
   // Header scroll effect
   useEffect(() => {
@@ -114,7 +119,7 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-6">
-            {activeAccount ? (
+            {mounted && activeAccount ? (
               <WalletButton />
             ) : (
               <button 

@@ -3,17 +3,16 @@ import algosdk from 'algosdk';
 export interface LockBountyParams {
     algodClient: algosdk.Algodv2;
     escrowAppId: number;
-    usdcAsaId: number;
     clientAddress: string;
     workerAddress: string;
+    senseiAddress: string;
     taskId: string;
     bountyAmountAlgo: bigint;
-    collateralAmountAlgo: bigint;
 }
 
 /**
  * Builds an atomic transaction group to lock a bounty in the EscrowVault.
- * 1. Asset Transfer (USDC) from Client to EscrowVault.
+ * 1. Payment (ALGO) from Client to EscrowVault.
  * 2. Application Call (lock_bounty) to EscrowVault.
  */
 export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
@@ -22,9 +21,9 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
         escrowAppId,
         clientAddress,
         workerAddress,
+        senseiAddress,
         taskId,
         bountyAmountAlgo,
-        collateralAmountAlgo
     } = params;
 
     const sp = await algodClient.getTransactionParams().do();
@@ -35,7 +34,7 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
     // 1. Payment Transfer of Bounty
     const bountyTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: clientAddress,
-        receiver: appAddr,
+        receiver: appAddr.toString(),
         amount: bountyAmountAlgo,
         suggestedParams: sp,
     });
@@ -50,8 +49,8 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
                     { type: 'string', name: 'task_id' },
                     { type: 'address', name: 'client' },
                     { type: 'address', name: 'worker' },
+                    { type: 'address', name: 'sensei' },
                     { type: 'uint64', name: 'bounty_amount' },
-                    { type: 'uint64', name: 'collateral_amount' },
                     { type: 'pay', name: 'bounty_txn' }
                 ],
                 returns: { type: 'bool' }
@@ -66,8 +65,8 @@ export async function buildLockBountyAtomicGroup(params: LockBountyParams) {
             taskId,
             clientAddress,
             workerAddress,
+            senseiAddress,
             bountyAmountAlgo,
-            collateralAmountAlgo,
             { txn: bountyTxn, signer: algosdk.makeEmptyTransactionSigner() }
         ],
         sender: clientAddress,
@@ -90,8 +89,9 @@ export async function buildReleasePaymentTransaction(params: {
     escrowAppId: number;
     adminAddress: string;
     taskId: string;
+    treasuryAddress: string;
 }) {
-    const { algodClient, escrowAppId, adminAddress, taskId } = params;
+    const { algodClient, escrowAppId, adminAddress, taskId, treasuryAddress } = params;
     const sp = await algodClient.getTransactionParams().do();
     const atc = new algosdk.AtomicTransactionComposer();
 
@@ -100,7 +100,10 @@ export async function buildReleasePaymentTransaction(params: {
         methods: [
             {
                 name: 'release_payment',
-                args: [{ type: 'string', name: 'task_id' }],
+                args: [
+                    { type: 'string', name: 'task_id' },
+                    { type: 'address', name: 'treasury' }
+                ],
                 returns: { type: 'bool' }
             }
         ]
@@ -109,7 +112,7 @@ export async function buildReleasePaymentTransaction(params: {
     atc.addMethodCall({
         appID: BigInt(escrowAppId),
         method: abi.getMethodByName('release_payment'),
-        methodArgs: [taskId],
+        methodArgs: [taskId, treasuryAddress],
         sender: adminAddress,
         signer: algosdk.makeEmptyTransactionSigner(),
         suggestedParams: sp,
@@ -123,17 +126,19 @@ export async function buildReleasePaymentTransaction(params: {
 
 /**
  * Builds an atomic transaction group to lock a bounty in the EscrowVault.
- * 1. Asset Transfer (USDC) from Client to EscrowVault.
- * 2. Application Call (lock_bounty) to EscrowVault.
+ * Used from the Hire page — client stakes ALGO for a task.
+ * 
+ * On success: 2% to platform treasury, 98% to sensei (developer).
+ * On failure: 100% refunded to client (user).
  */
 export async function buildCreateTaskGroup(params: {
     algodClient: algosdk.Algodv2;
     escrowVaultAppId: number;
     clientAddress: string;
     workerAddress: string;
+    senseiAddress: string;
     taskId: string;
     bountyAmountAlgo: bigint;
-    collateralAmountAlgo: bigint;
     signer: algosdk.TransactionSigner;
 }): Promise<algosdk.AtomicTransactionComposer> {
     const {
@@ -141,9 +146,9 @@ export async function buildCreateTaskGroup(params: {
         escrowVaultAppId,
         clientAddress,
         workerAddress,
+        senseiAddress,
         taskId,
         bountyAmountAlgo,
-        collateralAmountAlgo,
         signer
     } = params;
 
@@ -154,7 +159,7 @@ export async function buildCreateTaskGroup(params: {
     // 1. Payment Transfer of Bounty
     const bountyTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: clientAddress,
-        receiver: appAddr,
+        receiver: appAddr.toString(),
         amount: bountyAmountAlgo,
         suggestedParams: sp,
     });
@@ -169,8 +174,8 @@ export async function buildCreateTaskGroup(params: {
                     { type: 'string', name: 'task_id' },
                     { type: 'address', name: 'client' },
                     { type: 'address', name: 'worker' },
+                    { type: 'address', name: 'sensei' },
                     { type: 'uint64', name: 'bounty_amount' },
-                    { type: 'uint64', name: 'collateral_amount' },
                     { type: 'pay', name: 'bounty_txn' }
                 ],
                 returns: { type: 'bool' }
@@ -185,8 +190,8 @@ export async function buildCreateTaskGroup(params: {
             taskId,
             clientAddress,
             workerAddress,
+            senseiAddress,
             bountyAmountAlgo,
-            collateralAmountAlgo,
             { txn: bountyTxn, signer }
         ],
         sender: clientAddress,

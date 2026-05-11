@@ -32,7 +32,7 @@ export async function buildStakeCommitmentATC(params: StakeParams) {
     // 1. Payment (ALGO) to Contract
     const stakeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: senderAddress,
-        receiver: appAddr,
+        receiver: appAddr.toString(),
         amount: amountAlgo,
         suggestedParams: sp,
     });
@@ -68,6 +68,9 @@ export async function buildStakeCommitmentATC(params: StakeParams) {
         sender: senderAddress,
         signer,
         suggestedParams: sp,
+        boxes: [
+            { appIndex: commitmentAppId, name: new Uint8Array(Buffer.from(stakeId)) }
+        ]
     });
 
     return atc;
@@ -146,7 +149,7 @@ export async function buildStakeAndListAtomicGroup(params: {
     // 1. Stake Transaction (Asset Transfer - USDC)
     const stakeTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: senseiAddress,
-        receiver: lockAddr,
+        receiver: lockAddr.toString(),
         assetIndex: usdcAssetId,
         amount: stakeAmountUsdc,
         suggestedParams: sp,

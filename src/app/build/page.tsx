@@ -10,12 +10,13 @@ import { Button } from "@/components/Button";
 import { LANE_COLORS, LANE_LABELS, Lane, LLM_TIERS, BIDDING_STRATEGIES } from "@/lib/constants/index";
 import { LLM_TIER_DISPLAY } from "@/lib/constants/llmTiers";
 import { motion, AnimatePresence } from "framer-motion";
-import { Database, Code, Search, Megaphone, Check, ChevronRight, ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { Database, Code, Search, Megaphone, Check, ChevronRight, ChevronLeft, Eye, EyeOff, Clock } from "lucide-react";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
+import { buildStakeCommitmentATC } from "@/lib/transactions/commitmentLock";
 
 const laneIcons = {
   research: Search,
@@ -33,6 +34,7 @@ export default function BuildPage() {
   const [llmTier, setLlmTier] = useState<typeof LLM_TIERS[number]>("Standard");
   const [biddingStrategy, setBiddingStrategy] = useState<typeof BIDDING_STRATEGIES[number]>("Volume");
   const [algoStake, setAlgoStake] = useState(1);
+  const [lockDays, setLockDays] = useState<30 | 60 | 90>(30);
   const [openaiApiKey, setOpenaiApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKeyError, setApiKeyError] = useState("");
@@ -69,34 +71,41 @@ export default function BuildPage() {
     setIsDeploying(true);
     const tid = toast.loading("Preparing agent deployment...");
     try {
-      const registryAppId = parseInt(process.env.NEXT_PUBLIC_DOJO_REGISTRY_APP_ID || "0") || 758713047;
+      const commitmentLockAppId = parseInt(process.env.NEXT_PUBLIC_COMMITMENT_LOCK_APP_ID || "0") || 758815324;
 
       const randomId = Math.random().toString(36).substring(2, 8);
       const agentId = `${lane}-${randomId}`;
 
       console.log(`[Build] Starting deployment for Agent: ${agentId}`);
       
-      // Step 1: Sensei stakes ALGO into the registry manually
+      // Step 1: Stake ALGO into CommitmentLock with proper lock period
       toast.loading("Sign the ALGO stake transaction...", { id: tid });
-      const suggestedParams = await algodClient.getTransactionParams().do();
-      const registryAddress = algosdk.getApplicationAddress(registryAppId);
-
-      const stakeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: activeAccount.address,
-        receiver: registryAddress,
-        amount: BigInt(algoStake * 1_000_000), // Convert to microAlgos
-        suggestedParams,
+      
+      const stakeAmountMicro = BigInt(algoStake * 1_000_000);
+      
+      const atc = await buildStakeCommitmentATC({
+        algodClient,
+        commitmentAppId: commitmentLockAppId,
+        senderAddress: activeAccount.address,
+        stakeId: agentId,
+        amountAlgo: stakeAmountMicro,
+        lockDays,
+        signer: algosdk.makeEmptyTransactionSigner(),
       });
 
-      const signedTxns = await signTransactions([stakeTxn.toByte()]);
+      const txGroup = atc.buildGroup();
+      const rawTxns = txGroup.map(t => t.txn.toByte());
+
+      const signedTxns = await signTransactions(rawTxns);
       if (!signedTxns || signedTxns.length === 0) {
         throw new Error("Wallet returned no signatures");
       }
 
-      toast.loading("Submitting ALGO stake to network...", { id: tid });
+      toast.loading("Submitting ALGO stake to CommitmentLock...", { id: tid });
       const sendResult = await algodClient.sendRawTransaction(signedTxns.filter(s => s !== null) as Uint8Array[]).do();
       const stakeTxId = (sendResult as any).txId || (sendResult as any).txid;
       await algosdk.waitForConfirmation(algodClient, stakeTxId, 4);
+      console.log(`[Build] CommitmentLock stake confirmed. TxId: ${stakeTxId}`);
 
       // Step 2: Send API request to register agent via backend (admin-signed config binding)
       toast.loading("Registering agent on 0rca Dojo...", { id: tid });
@@ -110,7 +119,9 @@ export default function BuildPage() {
           lane: lane.toUpperCase(),
           llmTier,
           biddingStrategy,
-          openaiApiKey
+          openaiApiKey,
+          lockDays,
+          stakeAmount: algoStake,
         })
       });
 
@@ -350,6 +361,30 @@ export default function BuildPage() {
                     <p className="mt-6 text-[10px] text-white/20 font-medium uppercase tracking-widest">Stake depth determines marketplace ranking and priority.</p>
                   </div>
 
+                  <div className="dojo-card p-10">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">
+                      <Clock size={12} className="inline mr-2" />Lock Duration
+                    </label>
+                    <div className="grid grid-cols-3 gap-4">
+                      {([30, 60, 90] as const).map((days) => (
+                        <button
+                          key={days}
+                          onClick={() => setLockDays(days)}
+                          className={cn(
+                            "py-6 rounded-2xl font-black uppercase tracking-widest text-center transition-all duration-500 border",
+                            lockDays === days
+                              ? "bg-white text-black border-white"
+                              : "bg-white/[0.02] text-white/40 border-white/5 hover:border-white/20"
+                          )}
+                        >
+                          <div className="text-2xl tracking-tighter mb-1">{days}</div>
+                          <div className="text-[9px] tracking-[0.2em] opacity-60">DAYS</div>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-6 text-[10px] text-white/20 font-medium uppercase tracking-widest">Your staked ALGOs are locked in the CommitmentLock contract for this duration. Longer lock = higher trust signal.</p>
+                  </div>
+
                   <div className="mt-16 flex justify-between">
                     <Button variant="ghost" onClick={() => setStep(1)} className="!px-10">
                        [←] BACK
@@ -400,9 +435,13 @@ export default function BuildPage() {
                         <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">System Logic</span>
                         <span className="text-xl font-black text-white uppercase tracking-tighter">{biddingStrategy}</span>
                       </div>
-                      <div className="flex justify-between items-center pt-4">
+                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
                         <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Staked Governance</span>
                         <span className="text-3xl font-black text-dojo-teal tracking-tighter">{algoStake}.00 ALGO</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-4">
+                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Lock Duration</span>
+                        <span className="text-xl font-black text-white uppercase tracking-tighter">{lockDays} Days</span>
                       </div>
                     </div>
                   </div>

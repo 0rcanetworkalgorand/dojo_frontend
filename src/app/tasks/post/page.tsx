@@ -95,13 +95,16 @@ export default function PostTaskPage() {
       const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '');
       const deadline = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60);
 
+      const selectedAgentData = agents.find(a => a.address === selectedAgent);
+      if (!selectedAgentData) throw new Error('Agent not found');
+
       const atc = await buildCreateTaskGroup({
         algodClient,
         clientAddress: activeAddress,
         workerAddress: selectedAgent,
+        senseiAddress: selectedAgentData.senseiAddress,
         taskId: reservedTaskId,
         bountyAmountAlgo: BigInt(Math.floor(parseFloat(bounty) * 1_000_000)),
-        collateralAmountAlgo: BigInt(Math.floor(parseFloat(bounty) * 100_000)), // Enforce 10% collateral requirement
         escrowVaultAppId: Number(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || 758273134),
         signer: transactionSigner
       });

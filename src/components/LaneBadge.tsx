@@ -24,13 +24,14 @@ const laneSubtleColors = {
 };
 
 export function LaneBadge({ lane, className, variant = "subtle" }: LaneBadgeProps) {
+  const normalizedLane = (String(lane) || '').toLowerCase() as Lane;
   const colorClass = variant === "solid" 
-    ? `${laneColors[lane]} text-white` 
-    : laneSubtleColors[lane];
+    ? `${laneColors[normalizedLane] || ''} text-white` 
+    : laneSubtleColors[normalizedLane] || '';
 
   return (
     <span className={cn("lane-badge", colorClass, className)}>
-      {LANE_LABELS[lane]}
+      {LANE_LABELS[normalizedLane] || lane}
     </span>
   );
 }

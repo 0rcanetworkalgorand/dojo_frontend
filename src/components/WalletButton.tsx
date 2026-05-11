@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { truncateAddress } from "@/lib/utils/format";
 import { Wallet, LogOut, ChevronDown } from "lucide-react";
@@ -9,6 +9,9 @@ import { motion, AnimatePresence } from "framer-motion";
 export function WalletButton() {
   const { activeWallet, activeAccount, wallets } = useWallet();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const connectedWallet = wallets.find((w) => w.isConnected);
 
@@ -23,7 +26,7 @@ export function WalletButton() {
     setShowDropdown(false);
   };
 
-  if (!connectedWallet || !activeAccount) {
+  if (!mounted || !connectedWallet || !activeAccount) {
     return null;
   }
 

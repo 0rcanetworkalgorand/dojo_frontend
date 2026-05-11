@@ -52,6 +52,9 @@ export default function HirePage() {
   const [selectedAgent, setSelectedAgent] = useState<MatchedAgent | null>(null);
   const [bountyAlgo, setBountyAlgo] = useState('1');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   // Step 4/5: Processing + Result
   const [taskId, setTaskId] = useState<string | null>(null);
@@ -77,6 +80,21 @@ export default function HirePage() {
       socket.on('TASK_STATUS', (data: any) => {
         if (data.taskId === taskId) {
           setTaskState(data.state);
+        }
+      });
+
+      socket.on('BOUNTY_REFUNDED', (data: any) => {
+        if (data.taskId === taskId) {
+          toast.success('💰 Bounty refunded to your wallet (100%)', { duration: 5000 });
+        }
+      });
+
+      socket.on('COLLATERAL_SLASHED', (data: any) => {
+        if (data.taskId === taskId) {
+          toast('⚠️ Agent collateral slashed: 10% sent to platform treasury', { 
+            icon: '🔒', 
+            duration: 5000 
+          });
         }
       });
 
@@ -160,14 +178,17 @@ export default function HirePage() {
       const suggestedParams = await algodClient.getTransactionParams().do();
       const escrowVaultAppId = parseInt(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || '0') || 758715891;
 
+      // Generate on-chain taskId ONCE — used for both the smart contract box AND backend DB
+      const onChainTaskId = `T-${Date.now()}`;
+
       const atc = await buildCreateTaskGroup({
         algodClient,
         escrowVaultAppId,
         clientAddress: activeAccount.address,
-        workerAddress: selectedAgent.senseiAddress,
-        taskId: `T-${Date.now()}`,
+        workerAddress: selectedAgent.address,
+        senseiAddress: selectedAgent.senseiAddress,
+        taskId: onChainTaskId,
         bountyAmountAlgo: BigInt(Math.floor(bountyNum * 1_000_000)),
-        collateralAmountAlgo: BigInt(Math.floor(bountyNum * 100_000)), // 10%
         signer: algosdk.makeEmptyTransactionSigner()
       });
 
@@ -187,8 +208,10 @@ export default function HirePage() {
       await algosdk.waitForConfirmation(algodClient, stakeTxId, 4);
 
       // Create the task in the backend (triggers AI execution)
+      // Pass the SAME onChainTaskId so the backend can settle via the correct box key
       toast.loading('Dispatching task to agent...', { id: tid });
       const taskData = await createTask({
+        id: onChainTaskId,
         title: title || `Task: ${description.substring(0, 40)}...`,
         description,
         lane: matchResult?.detectedLane || 'RESEARCH',
@@ -356,7 +379,7 @@ export default function HirePage() {
                 <div className="mt-8 flex justify-end">
                   <button
                     onClick={handleFindAgents}
-                    disabled={isMatching || description.trim().length < 10 || !activeAccount}
+                    disabled={isMatching || description.trim().length < 10 || (mounted && !activeAccount)}
                     className="dojo-button flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isMatching ? (
@@ -374,7 +397,7 @@ export default function HirePage() {
                   </button>
                 </div>
 
-                {!activeAccount && (
+                {mounted && !activeAccount && (
                   <p className="text-center text-sm text-amber-600 mt-4 font-medium">
                     Please connect your wallet to hire an agent.
                   </p>
@@ -421,7 +444,9 @@ export default function HirePage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {matchResult.agents.map((agent) => (
+                    {matchResult.agents
+                      .filter(agent => agent.address && agent.address.length === 58)
+                      .map((agent) => (
                       <motion.div
                         key={agent.id}
                         whileHover={{ y: -2 }}

@@ -7,7 +7,7 @@ import { WalletModal } from "./WalletModal";
 import { cn } from "@/lib/utils/index";
 import { LogOut, Wallet, Menu } from "lucide-react";
 import { useWallet } from "@txnlab/use-wallet-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
@@ -22,6 +22,11 @@ export function Navigation() {
   const pathname = usePathname();
   const { activeAccount, wallets } = useWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const connectedWallet = wallets.find((w) => w.isConnected);
 
@@ -63,7 +68,7 @@ export function Navigation() {
 
             <div className="h-4 w-px bg-white/10 mx-2" />
 
-            {activeAccount ? (
+            {mounted && activeAccount ? (
               <WalletButton />
             ) : (
               <button

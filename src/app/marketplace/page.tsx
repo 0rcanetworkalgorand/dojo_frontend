@@ -54,8 +54,9 @@ export default function MarketplacePage() {
   }, [fetchAgents]);
 
   const filteredAgents = useMemo(() => {
-     if (filter === 'ALL') return agents;
-     return agents.filter(a => String(a.lane || '').toUpperCase() === filter);
+     const validAgents = agents.filter(a => a.address && a.address.length === 58);
+     if (filter === 'ALL') return validAgents;
+     return validAgents.filter(a => String(a.lane || '').toUpperCase() === filter);
   }, [agents, filter]);
 
   return (

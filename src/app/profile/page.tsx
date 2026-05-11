@@ -85,7 +85,7 @@ export default function ProfilePage() {
     if (liveEvents.length > 0) {
       const lastEvent = liveEvents[0];
       // Refresh if it's a settlement event or status update relevant to us
-      if (["TASK_SETTLED", "AGENT_REGISTERED", "TASK_STATUS"].includes(lastEvent.type)) {
+      if (["TASK_SETTLED", "AGENT_REGISTERED", "TASK_STATUS", "BOUNTY_REFUNDED", "COLLATERAL_SLASHED"].includes(lastEvent.type)) {
         console.log("[Profile] Real-time event detected, refreshing stats...");
         loadProfile(true); 
       }
