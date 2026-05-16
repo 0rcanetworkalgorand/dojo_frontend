@@ -71,3 +71,150 @@ export async function fetchTask(taskId: string) {
   if (!res.ok) throw new Error('Failed to fetch task');
   return res.json();
 }
+
+export interface ReiSelectedAgent {
+  agentAddress: string;
+  senseiAddress: string;
+  lane: string;
+  score: number;
+  successRate: number;
+  tasksCompleted: string;
+  tasksFailed: string;
+  subTask: string;
+  taskId?: string;
+}
+
+export interface ReiRecommendation {
+  analyzedLanes: string[];
+  reasoning: string;
+  selectedAgents: ReiSelectedAgent[];
+}
+
+export async function analyzeWithRei(description: string): Promise<ReiRecommendation> {
+  const res = await fetch(`${BASE_URL}/api/rei/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Rei analysis failed');
+  }
+  return res.json();
+}
+
+export async function startReiSession(
+  clientAddress: string,
+  description: string,
+  selectedAgents: ReiSelectedAgent[]
+): Promise<{ sessionId: string; firstAgent: ReiSelectedAgent & { taskId: string }; subTask: string }> {
+  const stakeTxIds = selectedAgents.map((_, i) => `pending-${i}`);
+  const serialized = selectedAgents.map(agent => ({
+    agentAddress: agent.agentAddress,
+    senseiAddress: agent.senseiAddress,
+    lane: agent.lane,
+    score: typeof agent.score === 'number' ? agent.score : parseFloat(String(agent.score)),
+    successRate: typeof agent.successRate === 'number' ? agent.successRate : parseFloat(String(agent.successRate)),
+    tasksCompleted: String(agent.tasksCompleted ?? '0'),
+    tasksFailed: String(agent.tasksFailed ?? '0'),
+    subTask: String(agent.subTask ?? ''),
+  }));
+  const res = await fetch(`${BASE_URL}/api/rei/session/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clientAddress, description, selectedAgents: serialized, stakeTxIds }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to start Rei session');
+  }
+  return res.json();
+}
+
+export async function startReiSessionWithStakes(
+  clientAddress: string,
+  description: string,
+  selectedAgents: ReiSelectedAgent[],
+  stakeTxIds: string[],
+  clientPublicKey?: string
+): Promise<{ sessionId: string; firstAgent: ReiSelectedAgent & { taskId: string }; subTask: string }> {
+  const serialized = selectedAgents.map(agent => ({
+    agentAddress: agent.agentAddress,
+    senseiAddress: agent.senseiAddress,
+    lane: agent.lane,
+    score: typeof agent.score === 'number' ? agent.score : parseFloat(String(agent.score)),
+    successRate: typeof agent.successRate === 'number' ? agent.successRate : parseFloat(String(agent.successRate)),
+    tasksCompleted: String(agent.tasksCompleted ?? '0'),
+    tasksFailed: String(agent.tasksFailed ?? '0'),
+    subTask: String(agent.subTask ?? ''),
+    taskId: String(agent.taskId ?? ''),
+  }));
+  const res = await fetch(`${BASE_URL}/api/rei/session/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clientAddress, description, selectedAgents: serialized, stakeTxIds, clientPublicKey }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to start Rei session');
+  }
+  return res.json();
+}
+
+export async function approveReiSession(sessionId: string): Promise<{
+  nextAgent: (ReiSelectedAgent & { taskId: string }) | null;
+  sessionComplete: boolean;
+  taskResult: string;
+  taskId: string;
+}> {
+  const res = await fetch(`${BASE_URL}/api/rei/session/${sessionId}/approve`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Approval failed');
+  }
+  return res.json();
+}
+
+export async function rejectReiSession(sessionId: string): Promise<{
+  nextAgent: (ReiSelectedAgent & { taskId: string }) | null;
+  sessionComplete: boolean;
+  taskResult: string;
+  taskId: string;
+}> {
+  const res = await fetch(`${BASE_URL}/api/rei/session/${sessionId}/reject`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Rejection failed');
+  }
+  return res.json();
+}
+
+export async function getReiSessionStatus(sessionId: string) {
+  const res = await fetch(`${BASE_URL}/api/rei/session/${sessionId}/status`);
+  if (!res.ok) throw new Error('Failed to fetch session status');
+  return res.json();
+}
+
+export async function releaseTaskPayment(taskId: string, callerAddress: string) {
+  const res = await fetch(`${BASE_URL}/api/tasks/${taskId}/release`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callerAddress }),
+  });
+  if (!res.ok) throw new Error('Failed to release payment');
+  return res.json();
+}
+
+export async function slashTask(taskId: string, callerAddress: string) {
+  const res = await fetch(`${BASE_URL}/api/tasks/${taskId}/slash`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callerAddress }),
+  });
+  if (!res.ok) throw new Error('Failed to slash');
+  return res.json();
+}
