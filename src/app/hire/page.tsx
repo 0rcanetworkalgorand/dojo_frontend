@@ -7,6 +7,7 @@ import { Navigation } from '@/components/Navigation';
 import { LaneBadge } from '@/components/LaneBadge';
 import { matchAgents, createTask, fetchTask, analyzeWithRei, startReiSessionWithStakes, approveReiSession, rejectReiSession, getReiSessionStatus, releaseTaskPayment, slashTask, ReiSelectedAgent, ReiRecommendation } from '@/lib/api';
 import { ensureKeyPair, getStoredPrivateKey, getStoredPublicKey, decryptWithPrivateKey, KeyPair } from '@/lib/crypto';
+import { initX402Client, isX402Ready } from '@/lib/x402Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles, CheckCircle, Users, Diamond, ArrowRight, ArrowLeft, Zap, Shield, Loader2, FileText, Brain, CircleDot, ThumbsUp, ThumbsDown, X, Bot, AlertTriangle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -104,6 +105,23 @@ export default function HirePage() {
       })
       .catch(err => console.error('[Hire] KeyPair failed:', err));
   }, []);
+
+  // Initialize x402 when wallet connects
+  useEffect(() => {
+    if (activeAccount && signTransactions) {
+      console.log('[Hire] Wallet connected, initializing x402...');
+      initX402Client({
+        signTransactions: async (txns: Uint8Array[]) => {
+          const signed = await signTransactions(txns);
+          // Filter out nulls - x402 requires all transactions to be signed
+          return signed.filter((s): s is Uint8Array => s !== null);
+        },
+        address: activeAccount.address
+      }).then(() => {
+        console.log('[Hire] x402 ready:', isX402Ready());
+      });
+    }
+  }, [activeAccount, signTransactions]);
 
   const decryptOutput = async (encryptedData: string | null | undefined): Promise<string | null> => {
     console.log('[Decrypt] Called with:', !!encryptedData, 'length:', encryptedData?.length);
