@@ -7,7 +7,7 @@ import { Navigation } from '@/components/Navigation';
 import { LaneBadge } from '@/components/LaneBadge';
 import { matchAgents, createTask, fetchTask, analyzeWithRei, startReiSessionWithStakes, approveReiSession, rejectReiSession, getReiSessionStatus, releaseTaskPayment, slashTask, ReiSelectedAgent, ReiRecommendation } from '@/lib/api';
 import { ensureKeyPair, getStoredPrivateKey, getStoredPublicKey, decryptWithPrivateKey, KeyPair } from '@/lib/crypto';
-import { initX402Client, isX402Ready } from '@/lib/x402Client';
+import { initX402Client, isX402Ready, getFetchWithPayment } from '@/lib/x402Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles, CheckCircle, Users, Diamond, ArrowRight, ArrowLeft, Zap, Shield, Loader2, FileText, Brain, CircleDot, ThumbsUp, ThumbsDown, X, Bot, AlertTriangle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -80,6 +80,7 @@ export default function HirePage() {
   const [taskId, setTaskId] = useState<string | null>(null);
   const [taskState, setTaskState] = useState<string>('CREATED');
   const [taskResult, setTaskResult] = useState<string | null>(null);
+  const [validationData, setValidationData] = useState<{ score: number; issues: string[]; decision: string } | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [reiRecommendation, setReiRecommendation] = useState<ReiRecommendation | null>(null);
@@ -158,8 +159,20 @@ export default function HirePage() {
           const decrypted = await decryptOutput(data.result || data.encryptedResult);
           setTaskResult(decrypted);
           setTaskState(data.state || 'SETTLED');
-          setStep('result');
-          toast.success('Task completed! 🎉', { duration: 4000 });
+          if (data.validationScore !== undefined) {
+            setValidationData({
+              score: data.validationScore,
+              issues: data.validationIssues || [],
+              decision: data.validationDecision || 'flag'
+            });
+          }
+          if (data.state === 'SUBMITTED') {
+            setStep('awaiting-approval');
+            toast.success('Task completed! Review and approve.', { duration: 4000 });
+          } else {
+            setStep('result');
+            toast.success('Task completed! 🎉', { duration: 4000 });
+          }
         }
       });
       socket.on('TASK_STATUS', (data: any) => {
@@ -1111,11 +1124,32 @@ export default function HirePage() {
                   <div className="w-10 h-10 rounded-xl bg-dojo-teal/10 flex items-center justify-center">
                     <FileText size={20} className="text-dojo-teal" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-xl font-heading font-bold text-dojo-heading">Agent Output</h2>
                     <p className="text-sm text-gray-400">Review the output and decide if you're satisfied</p>
                   </div>
+                  {validationData && (
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                      validationData.score >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
+                      validationData.score >= 5 ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      <span className="text-lg font-bold">{validationData.score}</span>
+                      <span className="text-xs">/10</span>
+                      <span className="text-xs ml-1">{
+                        validationData.score >= 8 ? '✅' :
+                        validationData.score >= 5 ? '⚠️' : '❌'
+                      }</span>
+                    </div>
+                  )}
                 </div>
+                
+                {validationData && validationData.issues.length > 0 && (
+                  <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <p className="text-xs text-amber-400 font-medium mb-1">⚠️ Validation Issues:</p>
+                    <p className="text-xs text-gray-400">{validationData.issues.join(', ')}</p>
+                  </div>
+                )}
 
                 <div className="prose prose-invert prose-sm max-w-none p-6 rounded-xl bg-[#0D0D0D] border border-white/5 overflow-auto max-h-[500px] shadow-inner mb-6">
                   <ReactMarkdown
@@ -1140,14 +1174,42 @@ export default function HirePage() {
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={async () => {
-                      if (!activeAccount?.address || !taskId) return;
+                      if (!activeAccount?.address || !taskId || !selectedAgent) return;
                       try {
-                        toast.loading('Approving and releasing payment...', { id: 'approve' });
-                        await releaseTaskPayment(taskId, activeAccount.address);
+                        const bountyNum = parseFloat(bountyAlgo);
+                        const bountyMicroAlgo = Math.floor(bountyNum * 1_000_000);
+                        const recipient = selectedAgent.senseiAddress;
+                        
+                        toast.loading('Creating payment transaction...', { id: 'approve' });
+                        
+                        const sp = await algodClient.getTransactionParams().do();
+                        const payTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+                          sender: activeAccount.address,
+                          receiver: recipient,
+                          amount: BigInt(bountyMicroAlgo),
+                          suggestedParams: sp,
+                        });
+                        
+                        const txnsToSign = [payTxn];
+                        const rawTxns = txnsToSign.map(t => t.toByte());
+                        
+                        toast.loading('Sign payment in wallet...', { id: 'approve' });
+                        const signedTxns = await signTransactions(rawTxns);
+                        
+                        if (!signedTxns || signedTxns.length === 0) {
+                          throw new Error('No signatures received');
+                        }
+                        
+                        toast.loading('Submitting payment...', { id: 'approve' });
+                        const sendResult = await (algodClient as any).sendRawTransaction(signedTxns.filter(s => s !== null) as Uint8Array[]).do();
+                        const txId = sendResult?.txId || sendResult?.txid;
+                        await algosdk.waitForConfirmation(algodClient, txId, 4);
+                        
                         setTaskState('SETTLED');
                         setStep('result');
-                        toast.success('Payment released to developer! ✅', { id: 'approve' });
+                        toast.success('Payment sent to agent! ✅', { id: 'approve' });
                       } catch (err: any) {
+                        console.error('Payment error:', err);
                         toast.error('Failed: ' + err.message, { id: 'approve' });
                       }
                     }}
@@ -1188,7 +1250,11 @@ export default function HirePage() {
                     <span className="text-3xl">{taskState === 'SETTLED' ? '✅' : '❌'}</span>
                     <div>
                       <p className="text-sm font-medium opacity-80">Task Status</p>
-                      <h3 className="text-2xl font-heading font-bold">{taskState === 'SETTLED' ? 'Completed Successfully' : 'Task Failed'}</h3>
+                      <h3 className="text-2xl font-heading font-bold">
+  {taskState === 'SETTLED' ? 'Completed Successfully' : 
+   taskState === 'SUBMITTED' ? 'Waiting for Approval' : 
+   taskState === 'SLASHED' ? 'Task Failed' : 'Processing...'}
+</h3>
                     </div>
                   </div>
                   {selectedAgent && (
@@ -1205,11 +1271,32 @@ export default function HirePage() {
                   <div className="w-10 h-10 rounded-xl bg-dojo-teal/10 flex items-center justify-center">
                     <FileText size={20} className="text-dojo-teal" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-xl font-heading font-bold text-dojo-heading">Agent Output</h2>
                     <p className="text-sm text-gray-400">{matchResult?.detectedLane} • Bounty: {bountyAlgo} ALGO</p>
                   </div>
+                  {validationData && (
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                      validationData.score >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
+                      validationData.score >= 5 ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      <span className="text-lg font-bold">{validationData.score}</span>
+                      <span className="text-xs">/10</span>
+                      <span className="text-xs ml-1">{
+                        validationData.score >= 8 ? '✅' :
+                        validationData.score >= 5 ? '⚠️' : '❌'
+                      }</span>
+                    </div>
+                  )}
                 </div>
+                
+                {validationData && validationData.issues.length > 0 && (
+                  <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <p className="text-xs text-amber-400 font-medium mb-1">⚠️ Validation Issues:</p>
+                    <p className="text-xs text-gray-400">{validationData.issues.join(', ')}</p>
+                  </div>
+                )}
 
                 <div className="prose prose-invert prose-sm max-w-none p-6 rounded-xl bg-[#0D0D0D] border border-white/5 overflow-auto max-h-[600px] shadow-inner">
                   <ReactMarkdown
