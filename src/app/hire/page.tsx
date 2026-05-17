@@ -269,37 +269,12 @@ export default function HirePage() {
     if (isNaN(bountyNum) || bountyNum < 0.1) { toast.error('Minimum bounty is 0.1 ALGO.'); return; }
 
     setIsSubmitting(true);
-    const tid = toast.loading('Preparing stake transaction...');
+    const tid = toast.loading('Preparing task...');
+
+    const onChainTaskId = `T-${Date.now()}`;
 
     try {
-      const escrowAppId = parseInt(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || '0') || 758715891;
-      const onChainTaskId = `T-${Date.now()}`;
-      const bountyMicroAlgo = BigInt(Math.floor(bountyNum * 1_000_000));
-
-      const atc = await buildCreateTaskGroup({
-        algodClient,
-        escrowVaultAppId: escrowAppId,
-        clientAddress: activeAccount.address,
-        workerAddress: selectedAgent.address,
-        senseiAddress: selectedAgent.senseiAddress,
-        taskId: onChainTaskId,
-        bountyAmountAlgo: bountyMicroAlgo,
-        signer: algosdk.makeEmptyTransactionSigner()
-      });
-
-      const txGroup = atc.buildGroup();
-      const rawTxns = txGroup.map(t => t.txn.toByte());
-
-      toast.loading('Sign the stake transaction in your wallet...', { id: tid });
-      const signedTxns = await signTransactions(rawTxns);
-      if (!signedTxns || signedTxns.length === 0) throw new Error('Wallet returned no signatures');
-
-      toast.loading('Submitting stake to network...', { id: tid });
-      const sendResult = await (algodClient as any).sendRawTransaction(signedTxns.filter(s => s !== null) as Uint8Array[]).do();
-      const stakeTxId = sendResult?.txId || sendResult?.txid;
-      await algosdk.waitForConfirmation(algodClient, stakeTxId, 4);
-
-      toast.loading('Dispatching task to agent...', { id: tid });
+      toast.loading('Attempting x402 payment...', { id: tid });
       const taskData = await createTask({
         id: onChainTaskId,
         title: title || `Task: ${description.substring(0, 40)}...`,
@@ -309,17 +284,67 @@ export default function HirePage() {
         clientAddress: activeAccount.address,
         clientPublicKey: getStoredPublicKey(),
         deadlineDays: 7,
-        stakeTxId,
         agentAddress: selectedAgent.address,
       });
 
       setTaskId(taskData.id);
       setTaskState('CREATED');
       setStep('processing');
-      toast.success('Task dispatched! Agent is working...', { id: tid, duration: 3000 });
+      toast.success('Task dispatched via x402!', { id: tid, duration: 3000 });
     } catch (err: any) {
-      console.error('Hire error:', err);
-      toast.error(`Failed: ${err.message}`, { id: tid });
+      console.log('[Hire] x402 failed, falling back to on-chain:', err.message);
+      
+      const tid2 = toast.loading('Falling back to on-chain...');
+      
+      try {
+        const escrowAppId = parseInt(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || '0') || 758715891;
+        const bountyMicroAlgo = BigInt(Math.floor(bountyNum * 1_000_000));
+
+        const atc = await buildCreateTaskGroup({
+          algodClient,
+          escrowVaultAppId: escrowAppId,
+          clientAddress: activeAccount.address,
+          workerAddress: selectedAgent.address,
+          senseiAddress: selectedAgent.senseiAddress,
+          taskId: onChainTaskId,
+          bountyAmountAlgo: bountyMicroAlgo,
+          signer: algosdk.makeEmptyTransactionSigner()
+        });
+
+        const txGroup = atc.buildGroup();
+        const rawTxns = txGroup.map(t => t.txn.toByte());
+
+        toast.loading('Sign the stake transaction...', { id: tid2 });
+        const signedTxns = await signTransactions(rawTxns);
+        if (!signedTxns || signedTxns.length === 0) throw new Error('Wallet returned no signatures');
+
+        toast.loading('Submitting to network...', { id: tid2 });
+        const sendResult = await (algodClient as any).sendRawTransaction(signedTxns.filter(s => s !== null) as Uint8Array[]).do();
+        const stakeTxId = sendResult?.txId || sendResult?.txid;
+        await algosdk.waitForConfirmation(algodClient, stakeTxId, 4);
+
+        toast.loading('Dispatching task...', { id: tid2 });
+        const taskData = await createTask({
+          id: onChainTaskId,
+          title: title || `Task: ${description.substring(0, 40)}...`,
+          description,
+          lane: matchResult?.detectedLane || 'RESEARCH',
+          bountyUsdc: String(Math.floor(bountyNum * 1_000_000)),
+          clientAddress: activeAccount.address,
+          clientPublicKey: getStoredPublicKey(),
+          deadlineDays: 7,
+          stakeTxId,
+          agentAddress: selectedAgent.address,
+        });
+
+        setTaskId(taskData.id);
+        setTaskState('CREATED');
+        setStep('processing');
+        toast.success('Task dispatched via on-chain!', { id: tid2, duration: 3000 });
+      } catch (fallbackErr: any) {
+        console.error('Fallback failed:', fallbackErr);
+        toast.error(`Fallback failed: ${fallbackErr.message}`, { id: tid2 });
+      }
     } finally { setIsSubmitting(false); }
   };
 

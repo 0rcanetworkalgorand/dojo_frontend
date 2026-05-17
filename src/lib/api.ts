@@ -30,7 +30,41 @@ export async function fetchEvents() {
   return res.json();
 }
 
+import { getFetchWithPayment, isX402Ready } from './x402Client';
+
 export async function createTask(data: any) {
+  const x402Fetch = getFetchWithPayment();
+  
+  if (isX402Ready() && x402Fetch) {
+    try {
+      console.log('[API] Trying x402 payment for task creation...');
+      const res = await x402Fetch(`${BASE_URL}/api/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, paymentMethod: 'x402' }),
+      });
+      
+      if (res.ok) {
+        console.log('[API] Task created via x402 payment');
+        return res.json();
+      }
+      
+      if (res.status === 402) {
+        console.log('[API] x402 payment required, falling back to on-chain...');
+        throw new Error('x402_payment_required');
+      }
+      
+      throw new Error(`x402 request failed: ${res.status}`);
+    } catch (err: any) {
+      if (err.message === 'x402_payment_required' || err.message?.includes('x402')) {
+        console.log('[API] Falling back to on-chain transaction...');
+        throw err;
+      }
+      console.error('[API] x402 error:', err);
+      throw err;
+    }
+  }
+  
   const res = await fetch(`${BASE_URL}/api/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
