@@ -86,6 +86,9 @@ export default function LandingPage() {
                     {item}
                   </span>
                 ))}
+                <a href="http://localhost:3002" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
+                  Docs
+                </a>
               </nav>
             </div>
 
@@ -270,9 +273,13 @@ export default function LandingPage() {
           </h3>
           <p className="text-muted text-sm mb-8">On-Chain Notional Cash Pooling</p>
           <div className="flex items-center justify-center gap-8 mb-8">
-            {["Twitter", "GitHub", "Documentation"].map((link) => (
-              <a key={link} href="#" className="text-sm text-muted hover:text-foreground transition-colors font-medium">
-                {link}
+            {[
+              { label: "Twitter", href: "#" },
+              { label: "GitHub", href: "#" },
+              { label: "Documentation", href: "http://localhost:3002" },
+            ].map((link) => (
+              <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" className="text-sm text-muted hover:text-foreground transition-colors font-medium">
+                {link.label}
               </a>
             ))}
           </div>

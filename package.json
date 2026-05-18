@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "concurrently \"next dev -p 3000\" \"npm run dev --prefix ../dojo-docs\"",
+    "dev:app": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -22,8 +23,8 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@walletconnect/modal": "^2.6.2",
     "@walletconnect/sign-client": "^2.11.0",
-    "@x402-avm/core": "^2.6.1",
     "@x402-avm/avm": "^2.6.1",
+    "@x402-avm/core": "^2.6.1",
     "@x402-avm/fetch": "^2.6.1",
     "algosdk": "^3.5.2",
     "clsx": "^2.1.0",
@@ -46,6 +47,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
+    "concurrently": "^8.2.2",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
