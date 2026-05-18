@@ -62,7 +62,6 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
       setLastTransactionId(mainTxId);
       addPendingTransaction(mainTxId);
       setSuccess(true);
-      // ... rest of toast logic ...
 
       toast.success(
         (t: any) => (
@@ -72,7 +71,7 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
               href={`https://testnet.explorer.perawallet.app/tx/${mainTxId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 underline text-dojo-teal font-bold"
+              className="ml-2 underline text-accent font-bold"
             >
               View on Explorer
             </a>
@@ -101,68 +100,68 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setStakeModalOpen(false)}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-dojo-surface border border-white/10 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl"
+            className="bg-surface border border-black/[0.06] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-10 pt-10 pb-8 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
+            <div className="px-8 pt-8 pb-6 flex items-center justify-between border-b border-black/[0.06] bg-surface-elevated">
               <div>
-                <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Node Collateral</h2>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mt-2">Commitment Protocol v2.4</p>
+                <h2 className="text-2xl font-bold text-foreground tracking-tight">Node Collateral</h2>
+                <p className="text-xs text-muted uppercase tracking-wider mt-1">Commitment Protocol v2.4</p>
               </div>
               <button
                 onClick={() => setStakeModalOpen(false)}
-                className="w-10 h-10 flex items-center justify-center text-white/20 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                className="w-10 h-10 flex items-center justify-center text-muted hover:text-foreground hover:bg-black/[0.04] rounded-full transition-all"
               >
-                <X size={24} strokeWidth={3} />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="p-10">
+            <div className="p-8">
               {success ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex flex-col items-center justify-center py-12 text-center">
                   <motion.div 
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="w-24 h-24 rounded-full bg-dojo-teal/20 flex items-center justify-center mb-8 border border-dojo-teal/50"
+                    className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-6 border border-accent/20"
                   >
-                    <Check size={48} className="text-dojo-teal" strokeWidth={3} />
+                    <Check size={32} className="text-accent" />
                   </motion.div>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Registry Verified</h3>
-                  <p className="text-xs font-medium text-white/40 uppercase tracking-widest mb-10 max-w-xs leading-relaxed">
+                  <h3 className="text-xl font-bold text-foreground tracking-tight mb-2">Registry Verified</h3>
+                  <p className="text-xs text-muted mb-6 max-w-xs">
                     NEURAL NODE ENTRY SUCCESSFUL. NODE IS NOW ACTIVE IN GLOBAL MARKETPLACE.
                   </p>
                   <a 
                     href={`https://testnet.explorer.perawallet.app/tx/${txnId}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-white hover:text-dojo-teal font-black uppercase tracking-widest text-[10px] transition-colors border-b border-white/10 pb-1"
+                    className="flex items-center gap-2 text-foreground hover:text-accent font-semibold text-xs uppercase tracking-wider transition-colors"
                   >
-                    VIEW ON EXPLORER <ArrowUpRight size={14} />
+                    VIEW ON EXPLORER <ArrowUpRight size={12} />
                   </a>
                 </div>
               ) : (
                 <>
-                  <div className="mb-10">
-                    <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-6">
+                  <div className="mb-8">
+                    <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-3">
                       Lock Duration
                     </label>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-3">
                       {COMMITMENT_DURATIONS.map((d) => (
                         <button
                           key={d}
                           onClick={() => setDuration(d as 30 | 60 | 90)}
                           className={cn(
-                            "py-5 px-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all duration-500 border",
+                            "py-3 px-4 rounded-xl font-semibold uppercase tracking-wider text-xs transition-all duration-300 border",
                             duration === d
-                              ? "bg-white border-white text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                              : "bg-white/[0.02] border-white/5 text-white/40 hover:border-white/20"
+                              ? "bg-accent text-white border-accent shadow-sm"
+                              : "bg-surface-elevated border-black/[0.06] text-muted hover:border-accent/30"
                           )}
                         >
                           {d} Days
@@ -171,8 +170,8 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
                     </div>
                   </div>
 
-                  <div className="mb-10">
-                    <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-6">
+                  <div className="mb-8">
+                    <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-3">
                       Stake Quantization [USDC]
                     </label>
                     <div className="relative">
@@ -181,44 +180,44 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0.00"
-                        className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-6 rounded-2xl text-4xl font-black tracking-tighter focus:!border-dojo-teal transition-all placeholder:opacity-10"
+                        className="input text-3xl font-bold"
                         min="0"
                         step="1"
                       />
-                      <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-black text-xl uppercase tracking-tighter">
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-muted font-semibold text-lg">
                         USDC
                       </div>
                     </div>
                   </div>
 
                   {parseFloat(amount) > 0 && (
-                    <div className="mb-10 p-8 bg-black/40 rounded-3xl border border-white/5 space-y-6">
-                      <div className="flex items-center gap-4 mb-4">
+                    <div className="mb-8 p-6 bg-surface-elevated rounded-xl border border-black/[0.06]">
+                      <div className="flex items-center gap-2 mb-4">
                         <span className="w-8 h-px bg-amber-500/30" />
-                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Protocol Warning</span>
+                        <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Protocol Warning</span>
                       </div>
                       
-                      <div className="space-y-6">
+                      <div className="space-y-3">
                         {[10, 20, duration - 1].map((day) => (
-                          <div key={day} className="flex justify-between items-center group">
-                            <span className="text-[10px] font-black text-white/20 uppercase tracking-widest group-hover:text-white/40 transition-colors">
+                          <div key={day} className="flex justify-between items-center">
+                            <span className="text-xs text-muted uppercase">
                               Exit at Day {day}
                             </span>
                             <div className="text-right">
-                              <div className="text-xs font-black text-red-500/80 tracking-widest">
+                              <div className="text-sm font-bold text-red-600">
                                 -{formatAlgo(penalty.penaltyAtDay(day))}
                               </div>
                             </div>
                           </div>
                         ))}
                         
-                        <div className="pt-6 border-t border-white/5 flex justify-between items-center">
-                          <span className="text-[10px] font-black text-dojo-teal uppercase tracking-[0.3em]">
+                        <div className="pt-3 border-t border-black/[0.06] flex justify-between items-center">
+                          <span className="text-xs font-semibold text-accent uppercase tracking-wider">
                             Full Maturity [Day {duration}]
                           </span>
-                          <div className="flex items-center gap-3">
-                            <Check size={16} className="text-emerald-500" strokeWidth={3} />
-                            <span className="text-lg font-black text-white tracking-tighter">
+                          <div className="flex items-center gap-2">
+                            <Check size={14} className="text-emerald-500" />
+                            <span className="text-lg font-bold text-foreground">
                               {formatAlgo(stakeBigInt)} USDC
                             </span>
                           </div>
@@ -230,25 +229,19 @@ export function StakeModal({ agentAddress = "demo_agent" }: StakeModalProps) {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !amount || parseFloat(amount) <= 0}
-                    className="w-full relative group"
-                  >
-                    <div className={cn(
-                        "w-full h-18 rounded-full font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-4 transition-all duration-500",
+                    className={cn(
+                        "w-full py-4 rounded-lg font-semibold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all",
                         isSubmitting || !amount || parseFloat(amount) <= 0
-                        ? "bg-white/5 text-white/20"
-                        : "bg-white text-black hover:bg-dojo-teal hover:shadow-[0_0_30px_rgba(0,245,212,0.4)] group-active:scale-[0.98]"
-                    )}>
-                      {isSubmitting ? (
-                        <>INITIALIZING PKI...</>
-                      ) : (
-                        <>COMMIT TO REGISTRY [→]</>
-                      )}
-                    </div>
+                        ? "bg-black/[0.04] text-muted"
+                        : "bg-accent text-white hover:bg-accent-dark shadow-sm"
+                    )}
+                  >
+                    {isSubmitting ? (
+                      <>INITIALIZING...</>
+                    ) : (
+                      <>COMMIT TO REGISTRY</>
+                    )}
                   </button>
-                  
-                  <p className="mt-8 text-center text-[10px] text-white/10 uppercase tracking-[0.3em] font-black">
-                    EVM CO-PROCESSOR // ALGORAND STANDARD ASSET
-                  </p>
                 </>
               )}
             </div>

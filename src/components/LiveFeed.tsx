@@ -11,19 +11,19 @@ export function LiveFeed() {
   const { earnings, isConnected } = useLiveFeed();
 
   return (
-    <div className="flex flex-col h-full bg-dojo-bg border-x border-white/[0.05] relative group overflow-hidden">
-      <div className="flex items-center justify-between px-8 py-6 bg-white/[0.02] border-b border-white/[0.05] z-10 backdrop-blur-md">
+    <div className="flex flex-col h-full bg-background border-x border-black/[0.06] relative group overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-4 bg-surface-elevated border-b border-black/[0.06] z-10">
         <div className="flex items-center gap-3">
-          <Activity size={18} className="text-dojo-teal" />
-          <h3 className="font-black text-xs text-white uppercase tracking-[0.2em]">Live Stream</h3>
+          <Activity size={18} className="text-accent" />
+          <h3 className="font-bold text-xs text-foreground uppercase tracking-wider">Live Stream</h3>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-dojo-success/10 border border-dojo-success/20">
-          <Circle size={6} className="fill-dojo-success text-dojo-success animate-pulse shadow-[0_0_8px_rgba(0,245,212,0.5)]" />
-          <span className="text-[9px] font-black text-dojo-success uppercase tracking-widest">Live</span>
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+          <Circle size={6} className="fill-accent text-accent animate-pulse" />
+          <span className="text-[9px] font-semibold text-accent uppercase tracking-widest">Live</span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto japanese-scroll px-6 py-6 space-y-6">
+      <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-4 space-y-3">
         <AnimatePresence initial={false} mode="popLayout">
           {earnings.map((event: any, i: number) => (
             <motion.div
@@ -32,14 +32,14 @@ export function LiveFeed() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="p-5 bg-white/[0.02] rounded-2xl border border-white/[0.05] hover:border-dojo-teal/30 hover:bg-white/[0.05] transition-all duration-300 group/feed"
+              className="p-4 bg-surface rounded-xl border border-black/[0.06] hover:border-accent/30 transition-all duration-300"
             >
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start mb-2">
                 <div>
-                  <p className="font-bold text-xs text-white uppercase tracking-tight leading-tight group-hover/feed:text-dojo-teal transition-colors">
+                  <p className="font-bold text-xs text-foreground uppercase tracking-tight">
                     {event.type.replace('_', ' ')}
                   </p>
-                  <p className="text-[9px] text-white/30 font-mono truncate w-32 mt-1.5 uppercase tracking-widest leading-none">
+                  <p className="text-[9px] text-muted font-mono truncate w-32 mt-1 uppercase tracking-widest">
                     {event.address || event.txId || 'System Node'}
                   </p>
                 </div>
@@ -48,8 +48,8 @@ export function LiveFeed() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1 h-1 rounded-full bg-dojo-teal shadow-[0_0_4px_rgba(0,245,212,0.8)]" />
-                <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                <p className="text-[9px] text-muted font-semibold uppercase tracking-widest">
                   {new Date(event.timestamp).toLocaleTimeString()}
                 </p>
               </div>

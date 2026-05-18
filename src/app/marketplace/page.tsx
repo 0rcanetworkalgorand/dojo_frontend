@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useWallet } from '@txnlab/use-wallet-react';
-import { toast } from 'react-hot-toast';
-import { io, Socket } from 'socket.io-client';
-import { AgentCard } from '@/components/AgentCard';
-import { Navigation } from '@/components/Navigation';
-import { SwarmParticles } from '@/components/SwarmParticles';
-import { Agent, LaneType } from '@/lib/types';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { cn } from '@/lib/utils';
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useWallet } from "@txnlab/use-wallet-react";
+import { toast } from "react-hot-toast";
+import { io, Socket } from "socket.io-client";
+import { AgentCard } from "@/components/AgentCard";
+import { Navigation } from "@/components/Navigation";
+import { SwarmParticles } from "@/components/SwarmParticles";
+import { Agent, LaneType } from "@/lib/types";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { cn } from "@/lib/utils";
 
 export default function MarketplacePage() {
   const { activeAddress } = useWallet();
@@ -35,17 +35,16 @@ export default function MarketplacePage() {
   useEffect(() => {
     fetchAgents();
 
-    // Setup Socket for real-time updates
     const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
     setSocket(newSocket);
 
     newSocket.on('AGENT_REGISTERED', (agent) => {
-        setAgents(prev => [agent, ...prev]);
-        toast.success(`New Sensei deployed: ${agent.name}`, { icon: '🧘' });
+      setAgents(prev => [agent, ...prev]);
+      toast.success(`New Sensei deployed: ${agent.name}`, { icon: '' });
     });
 
     newSocket.on('AGENT_STATUS_UPDATED', (agent) => {
-        setAgents(prev => prev.map(a => a.address === agent.address ? { ...a, status: agent.status } : a));
+      setAgents(prev => prev.map(a => a.address === agent.address ? { ...a, status: agent.status } : a));
     });
 
     return () => {
@@ -54,64 +53,57 @@ export default function MarketplacePage() {
   }, [fetchAgents]);
 
   const filteredAgents = useMemo(() => {
-     const validAgents = agents.filter(a => a.address && a.address.length === 58);
-     if (filter === 'ALL') return validAgents;
-     return validAgents.filter(a => String(a.lane || '').toUpperCase() === filter);
+    const validAgents = agents.filter(a => a.address && a.address.length === 58);
+    if (filter === 'ALL') return validAgents;
+    return validAgents.filter(a => String(a.lane || '').toUpperCase() === filter);
   }, [agents, filter]);
 
   return (
-    <div className="min-h-screen bg-dojo-bg relative overflow-hidden">
-      <SwarmParticles />
+    <div className="min-h-screen bg-background relative">
+      <SwarmParticles className="opacity-20" />
       <Navigation />
       
-      <div className="max-w-7xl mx-auto pt-20 pb-20 px-6 sm:px-12 relative z-10">
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-20 gap-10">
+      <div className="max-w-7xl mx-auto pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative z-10">
+        <header className="mb-16">
           <div className="max-w-2xl">
-            <h1 className="text-6xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-none">
-              Swarm<br/>Marketplace
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
+              Swarm Marketplace
             </h1>
-            <p className="text-white/40 font-medium uppercase tracking-[0.2em] text-xs">
-              Autonomous Intelligence // High-Complexity Operations
+            <p className="text-muted font-medium text-lg">
+              Discover and hire autonomous AI agents across specialized neural lanes.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-8">
             {['ALL', 'RESEARCH', 'CODE', 'DATA', 'OUTREACH'].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={cn(
-                    "px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border",
-                    filter === f 
-                      ? 'bg-white text-black border-white' 
-                      : 'bg-white/[0.03] text-white/40 border-white/[0.05] hover:border-white/20 hover:text-white'
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  filter === f
+                    ? "bg-accent text-white shadow-sm"
+                    : "bg-black/[0.03] text-muted hover:bg-black/[0.06] hover:text-foreground border border-transparent"
                 )}
               >
-                {f}
+                {f.charAt(0) + f.slice(1).toLowerCase()}
               </button>
             ))}
           </div>
         </header>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-96">
+          <div className="flex items-center justify-center py-20">
             <LoadingSpinner />
           </div>
         ) : filteredAgents.length === 0 ? (
-          <div className="text-center py-40 dojo-glass rounded-dojo-modal border-dashed border-2 border-white/5">
-            <p className="text-white/20 font-black uppercase tracking-[0.2em] text-sm">Deployment required in this sector.</p>
+          <div className="text-center py-20 card">
+            <p className="text-muted font-medium">No agents found. Be the first to deploy one.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAgents.map((agent) => (
-              <AgentCard 
-                key={agent.id} 
-                agent={agent} 
-                onLicense={(id) => {
-                  toast('Routing to hire flow...', { icon: '🧘' });
-                  window.location.href = '/hire';
-                }}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAgents.map((agent, i) => (
+              <AgentCard key={agent.address} agent={agent} />
             ))}
           </div>
         )}

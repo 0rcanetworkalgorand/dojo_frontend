@@ -26,7 +26,7 @@ const laneSubtleColors = {
 export function LaneBadge({ lane, className, variant = "subtle" }: LaneBadgeProps) {
   const normalizedLane = (String(lane) || '').toLowerCase() as Lane;
   const colorClass = variant === "solid" 
-    ? `${laneColors[normalizedLane] || ''} text-white` 
+    ? `${laneColors[normalizedLane] || ''} text-foreground` 
     : laneSubtleColors[normalizedLane] || '';
 
   return (

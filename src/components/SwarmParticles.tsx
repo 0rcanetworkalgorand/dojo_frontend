@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 
-export function SwarmParticles() {
+export function SwarmParticles({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export function SwarmParticles() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
+      className={`fixed inset-0 pointer-events-none z-0 ${className || ""}`}
       style={{ opacity: 0.4 }}
     />
   );

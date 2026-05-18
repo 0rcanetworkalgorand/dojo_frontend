@@ -150,17 +150,17 @@ export default function BuildPage() {
 
       <main className="max-w-7xl mx-auto px-6 sm:px-12 py-20 relative z-10">
         <div className="max-w-3xl mb-20">
-          <h1 className="text-6xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-none">
+          <h1 className="text-6xl md:text-7xl font-black text-foreground mb-6 uppercase tracking-tighter leading-none">
             Deploy<br/>New Agent
           </h1>
-          <p className="text-white/40 font-medium uppercase tracking-[0.2em] text-xs">
+          <p className="text-muted font-medium uppercase tracking-[0.2em] text-xs">
             Autonomous Configuration // Hive Expansion Protocol
           </p>
         </div>
 
         {/* Step Progress Bar */}
         <div className="mb-20 relative flex justify-between max-w-2xl">
-          <div className="absolute top-1/2 left-0 w-full h-px bg-white/10 -translate-y-1/2 z-0" />
+          <div className="absolute top-1/2 left-0 w-full h-px bg-black/[0.1] -translate-y-1/2 z-0" />
           <motion.div 
             className="absolute top-1/2 left-0 h-px bg-dojo-teal -translate-y-1/2 z-0"
             animate={{ width: `${((step - 1) / 2) * 100}%` }}
@@ -173,14 +173,14 @@ export default function BuildPage() {
                   "w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-500",
                   step >= s 
                     ? "bg-white border-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" 
-                    : "bg-dojo-bg border-white/10 text-white/20"
+                    : "bg-dojo-bg border-black/[0.1] text-muted"
                 )}
               >
                 {step > s ? <Check size={20} strokeWidth={3} /> : <span className="font-black text-xs">{s}</span>}
               </div>
               <span className={cn(
                 "mt-4 text-[10px] font-black uppercase tracking-widest transition-colors",
-                step >= s ? "text-white" : "text-white/20"
+                step >= s ? "text-foreground" : "text-muted"
               )}>
                 {s === 1 ? "Sector" : s === 2 ? "Logic" : "Verify"}
               </span>
@@ -198,7 +198,7 @@ export default function BuildPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                 >
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-10">Sector Allocation</h2>
+                  <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter mb-10">Sector Allocation</h2>
                   <div className="grid grid-cols-2 gap-6">
                     {(Object.keys(LANE_LABELS) as Lane[]).map((l) => {
                       const Icon = laneIcons[l];
@@ -211,24 +211,24 @@ export default function BuildPage() {
                             "group p-8 text-left rounded-dojo-modal border transition-all duration-500 relative overflow-hidden",
                             isSelected 
                               ? "border-white bg-white text-black" 
-                              : "dojo-card-hover text-white/40 hover:text-white"
+                              : "dojo-card-hover text-muted hover:text-foreground"
                           )}
                         >
                           <div className={cn(
                             "w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-colors",
-                            isSelected ? "bg-black text-white" : "bg-white/5 text-white/20 group-hover:bg-dojo-teal group-hover:text-black"
+                            isSelected ? "bg-black text-foreground" : "bg-black/5 text-muted group-hover:bg-dojo-teal group-hover:text-black"
                           )}>
                             <Icon size={28} />
                           </div>
                           <h3 className={cn(
                             "text-xl font-black uppercase tracking-tighter mb-2 transition-colors",
-                            isSelected ? "text-black" : "text-white"
+                            isSelected ? "text-black" : "text-foreground"
                           )}>
                             {isSelected && "[ SELECTED ] "}{LANE_LABELS[l as Lane]}
                           </h3>
                           <p className={cn(
                             "text-xs font-medium uppercase tracking-widest leading-relaxed",
-                            isSelected ? "text-black/60" : "text-white/20"
+                            isSelected ? "text-black/60" : "text-muted"
                           )}>Neural optimization for {l}.</p>
                         </button>
                       );
@@ -254,10 +254,10 @@ export default function BuildPage() {
                   exit={{ opacity: 0, x: 20 }}
                   className="space-y-10"
                 >
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-10">Neural Architecture</h2>
+                  <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter mb-10">Neural Architecture</h2>
 
                   <div className="dojo-card p-10">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Intelligence Cluster</label>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-8">Intelligence Cluster</label>
                     <div className="grid grid-cols-2 gap-6">
                       {LLM_TIERS.map((tier) => (
                         <button
@@ -267,12 +267,12 @@ export default function BuildPage() {
                             "p-8 rounded-3xl transition-all duration-500 border text-left",
                             llmTier === tier
                               ? "bg-white border-white text-black"
-                              : "bg-white/[0.02] border-white/5 text-white/40 hover:border-white/20"
+                              : "bg-black/[0.02] border-black/[0.05] text-muted hover:border-black/[0.2]"
                           )}
                         >
                           <div className={cn(
                             "text-[10px] font-black uppercase tracking-[0.2em] mb-4",
-                            llmTier === tier ? "text-black/40" : "text-white/20"
+                            llmTier === tier ? "text-black/40" : "text-muted"
                           )}>
                             {tier}
                           </div>
@@ -281,7 +281,7 @@ export default function BuildPage() {
                           </div>
                           <div className={cn(
                               "pt-6 border-t flex items-center justify-between",
-                              llmTier === tier ? "border-black/10" : "border-white/5"
+                              llmTier === tier ? "border-black/10" : "border-black/[0.05]"
                           )}>
                             <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Cost/Task</span>
                             <span className="text-xs font-black">{LLM_TIER_DISPLAY[tier].estimatedCostPerTask}</span>
@@ -292,7 +292,7 @@ export default function BuildPage() {
                   </div>
 
                   <div className="dojo-card p-10">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Market Protocol</label>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-8">Market Protocol</label>
                     <div className="flex gap-4">
                       {BIDDING_STRATEGIES.map((strategy) => (
                         <button
@@ -302,7 +302,7 @@ export default function BuildPage() {
                             "flex-1 py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all duration-500 border",
                             biddingStrategy === strategy
                               ? "bg-white text-black border-white"
-                              : "bg-white/[0.02] text-white/40 border-white/5 hover:border-white/20"
+                              : "bg-black/[0.02] text-muted border-black/[0.05] hover:border-black/[0.2]"
                           )}
                         >
                           {strategy}
@@ -312,7 +312,7 @@ export default function BuildPage() {
                   </div>
 
                   <div className="dojo-card p-10">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Neural Key [Auth]</label>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-8">Neural Key [Auth]</label>
                     <div className="relative">
                       <input
                         type={showApiKey ? "text" : "password"}
@@ -323,14 +323,14 @@ export default function BuildPage() {
                         }}
                         placeholder="sk-..."
                         className={cn(
-                          "dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-5 rounded-2xl pr-16 font-mono text-sm uppercase tracking-widest focus:!border-dojo-teal transition-all",
+                          "dojo-input !bg-black/[0.02] !border-black/[0.1] !text-foreground px-8 py-5 rounded-2xl pr-16 font-mono text-sm uppercase tracking-widest focus:!border-dojo-teal transition-all",
                           apiKeyError && "border-red-500 focus:ring-red-500/10"
                         )}
                       />
                       <button
                         type="button"
                         onClick={() => setShowApiKey(!showApiKey)}
-                        className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                        className="absolute right-6 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
                       >
                         {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
@@ -338,31 +338,31 @@ export default function BuildPage() {
                     {apiKeyError && (
                       <p className="mt-4 text-[10px] text-red-500 font-black uppercase tracking-widest">{apiKeyError}</p>
                     )}
-                    <p className="mt-6 text-[10px] text-white/20 font-medium uppercase tracking-widest leading-relaxed">
+                    <p className="mt-6 text-[10px] text-muted font-medium uppercase tracking-widest leading-relaxed">
                       Secured via AES-256-GCM. Never exposed on-chain.
                     </p>
                   </div>
 
                   <div className="dojo-card p-10">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">Governance Collateral [ALGO]</label>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-8">Governance Collateral [ALGO]</label>
                     <div className="relative">
                       <input
                         type="number"
                         value={algoStake}
                         onChange={(e) => setAlgoStake(Number(e.target.value))}
-                        className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-10 py-5 rounded-2xl text-2xl font-black tracking-tighter focus:!border-dojo-teal transition-all"
+                        className="dojo-input !bg-black/[0.02] !border-black/[0.1] !text-foreground px-10 py-5 rounded-2xl text-2xl font-black tracking-tighter focus:!border-dojo-teal transition-all"
                         min="1"
                         step="1"
                       />
-                      <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-black text-xl">
+                      <div className="absolute right-8 top-1/2 -translate-y-1/2 text-muted font-black text-xl">
                         A
                       </div>
                     </div>
-                    <p className="mt-6 text-[10px] text-white/20 font-medium uppercase tracking-widest">Stake depth determines marketplace ranking and priority.</p>
+                    <p className="mt-6 text-[10px] text-muted font-medium uppercase tracking-widest">Stake depth determines marketplace ranking and priority.</p>
                   </div>
 
                   <div className="dojo-card p-10">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-8">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-8">
                       <Clock size={12} className="inline mr-2" />Lock Duration
                     </label>
                     <div className="grid grid-cols-3 gap-4">
@@ -374,7 +374,7 @@ export default function BuildPage() {
                             "py-6 rounded-2xl font-black uppercase tracking-widest text-center transition-all duration-500 border",
                             lockDays === days
                               ? "bg-white text-black border-white"
-                              : "bg-white/[0.02] text-white/40 border-white/5 hover:border-white/20"
+                              : "bg-black/[0.02] text-muted border-black/[0.05] hover:border-black/[0.2]"
                           )}
                         >
                           <div className="text-2xl tracking-tighter mb-1">{days}</div>
@@ -382,7 +382,7 @@ export default function BuildPage() {
                         </button>
                       ))}
                     </div>
-                    <p className="mt-6 text-[10px] text-white/20 font-medium uppercase tracking-widest">Your staked ALGOs are locked in the CommitmentLock contract for this duration. Longer lock = higher trust signal.</p>
+                    <p className="mt-6 text-[10px] text-muted font-medium uppercase tracking-widest">Your staked ALGOs are locked in the CommitmentLock contract for this duration. Longer lock = higher trust signal.</p>
                   </div>
 
                   <div className="mt-16 flex justify-between">
@@ -419,29 +419,29 @@ export default function BuildPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                 >
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-10">Final Verification</h2>
+                  <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter mb-10">Final Verification</h2>
 
                   <div className="dojo-card p-12 mb-12">
                     <div className="space-y-8">
-                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
-                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Operational Sector</span>
-                        <span className="text-xl font-black text-white uppercase tracking-tighter">{lane}</span>
+                      <div className="flex justify-between items-center pb-8 border-b border-black/[0.05]">
+                        <span className="text-muted text-[10px] font-black uppercase tracking-[0.3em]">Operational Sector</span>
+                        <span className="text-xl font-black text-foreground uppercase tracking-tighter">{lane}</span>
                       </div>
-                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
-                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Neural Tier</span>
-                        <span className="text-xl font-black text-white uppercase tracking-tighter">{llmTier}</span>
+                      <div className="flex justify-between items-center pb-8 border-b border-black/[0.05]">
+                        <span className="text-muted text-[10px] font-black uppercase tracking-[0.3em]">Neural Tier</span>
+                        <span className="text-xl font-black text-foreground uppercase tracking-tighter">{llmTier}</span>
                       </div>
-                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
-                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">System Logic</span>
-                        <span className="text-xl font-black text-white uppercase tracking-tighter">{biddingStrategy}</span>
+                      <div className="flex justify-between items-center pb-8 border-b border-black/[0.05]">
+                        <span className="text-muted text-[10px] font-black uppercase tracking-[0.3em]">System Logic</span>
+                        <span className="text-xl font-black text-foreground uppercase tracking-tighter">{biddingStrategy}</span>
                       </div>
-                      <div className="flex justify-between items-center pb-8 border-b border-white/5">
-                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Staked Governance</span>
+                      <div className="flex justify-between items-center pb-8 border-b border-black/[0.05]">
+                        <span className="text-muted text-[10px] font-black uppercase tracking-[0.3em]">Staked Governance</span>
                         <span className="text-3xl font-black text-dojo-teal tracking-tighter">{algoStake}.00 ALGO</span>
                       </div>
                       <div className="flex justify-between items-center pt-4">
-                        <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Lock Duration</span>
-                        <span className="text-xl font-black text-white uppercase tracking-tighter">{lockDays} Days</span>
+                        <span className="text-muted text-[10px] font-black uppercase tracking-[0.3em]">Lock Duration</span>
+                        <span className="text-xl font-black text-foreground uppercase tracking-tighter">{lockDays} Days</span>
                       </div>
                     </div>
                   </div>
@@ -465,11 +465,11 @@ export default function BuildPage() {
 
           <div className="lg:col-span-5 hidden lg:block sticky top-32">
             <div className="relative">
-              <div className="absolute -top-16 left-0 text-[10px] font-black uppercase tracking-[0.3em] text-white/20 flex items-center gap-4">
-                <span className="w-12 h-px bg-white/10" />
+              <div className="absolute -top-16 left-0 text-[10px] font-black uppercase tracking-[0.3em] text-muted flex items-center gap-4">
+                <span className="w-12 h-px bg-black/[0.1]" />
                 Network Preview
               </div>
-              <div className="pt-6 p-10 rounded-dojo-modal bg-white/[0.02] border border-white/5 shadow-2xl relative group overflow-hidden">
+              <div className="pt-6 p-10 rounded-dojo-modal bg-black/[0.02] border border-black/[0.05] shadow-2xl relative group overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-dojo-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                 <AgentCard 
                   agent={{
@@ -480,7 +480,7 @@ export default function BuildPage() {
                 />
                 <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-dojo-bg to-transparent pointer-events-none" />
               </div>
-              <p className="mt-10 text-center text-[10px] text-white/20 font-black uppercase tracking-[0.2em]">
+              <p className="mt-10 text-center text-[10px] text-muted font-black uppercase tracking-[0.2em]">
                 Verified Node Entry // Dojo Registry
               </p>
             </div>

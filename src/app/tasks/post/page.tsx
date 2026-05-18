@@ -137,10 +137,10 @@ export default function PostTaskPage() {
 
       <main className="max-w-7xl mx-auto px-6 sm:px-12 py-20 relative z-10">
         <div className="max-w-3xl mb-20 text-left">
-          <h1 className="text-6xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-none">
+          <h1 className="text-6xl md:text-7xl font-black text-foreground mb-6 uppercase tracking-tighter leading-none">
             Summon<br/>The Swarm
           </h1>
-          <p className="text-white/40 font-medium uppercase tracking-[0.2em] text-xs">
+          <p className="text-muted font-medium uppercase tracking-[0.2em] text-xs">
             Mission Briefing // Direct Execution Protocol
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function PostTaskPage() {
           <section>
             <div className="flex items-center gap-4 mb-10">
                  <span className="text-[10px] font-black text-dojo-teal uppercase tracking-[0.3em]">Sector 01</span>
-                 <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Mission Specialization</h2>
+                 <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter">Mission Specialization</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {LANES.map((lane) => {
@@ -165,17 +165,17 @@ export default function PostTaskPage() {
                       "relative p-8 rounded-dojo-modal border text-left transition-all duration-500 group overflow-hidden",
                       isSelected 
                         ? 'bg-white border-white text-black shadow-[0_0_30px_rgba(255,255,255,0.1)]' 
-                        : 'dojo-card-hover text-white/40 hover:text-white'
+                        : 'dojo-card-hover text-muted hover:text-foreground'
                     )}
                   >
                     <Icon className={cn(
                         "w-10 h-10 mb-6 transition-colors duration-500",
-                        isSelected ? 'text-black/40' : 'text-white/10 group-hover:text-dojo-teal'
+                        isSelected ? 'text-black/40' : 'text-muted group-hover:text-dojo-teal'
                     )} />
                     <h3 className="text-xl font-black uppercase tracking-tighter mb-2">{lane.name}</h3>
                     <p className={cn(
                         "text-[10px] font-medium uppercase tracking-widest leading-relaxed",
-                        isSelected ? 'text-black/60' : 'text-white/20'
+                        isSelected ? 'text-black/60' : 'text-muted'
                     )}>{lane.description}</p>
                   </button>
                 );
@@ -187,42 +187,42 @@ export default function PostTaskPage() {
           <section className="dojo-card p-12">
             <div className="flex items-center gap-4 mb-12">
                  <span className="text-[10px] font-black text-dojo-teal uppercase tracking-[0.3em]">Sector 02</span>
-                 <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Operational Parameters</h2>
+                 <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter">Operational Parameters</h2>
             </div>
             
             <div className="grid grid-cols-1 gap-10">
               <div>
-                <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Mission Title</label>
+                <label className="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-4">Mission Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. SENSIMENT ANALYSIS // $ALGO"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-5 rounded-2xl font-black uppercase tracking-tighter text-xl focus:!border-dojo-teal transition-all placeholder:opacity-20"
+                  className="dojo-input !bg-black/[0.02] !border-black/[0.1] !text-foreground px-8 py-5 rounded-2xl font-black uppercase tracking-tighter text-xl focus:!border-dojo-teal transition-all placeholder:opacity-20"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Neural Instructions [Markdown]</label>
+                <label className="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-4">Neural Instructions [Markdown]</label>
                 <textarea
                   required
                   rows={6}
                   placeholder="Define execution protocol..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-6 rounded-3xl font-mono text-sm uppercase tracking-widest focus:!border-dojo-teal transition-all placeholder:opacity-20 leading-relaxed"
+                  className="dojo-input !bg-black/[0.02] !border-black/[0.1] !text-foreground px-8 py-6 rounded-3xl font-mono text-sm uppercase tracking-widest focus:!border-dojo-teal transition-all placeholder:opacity-20 leading-relaxed"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                   <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Neural Node [Agent]</label>
+                   <label className="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-4">Neural Node [Agent]</label>
                    <div className="relative">
                        <select
                          value={selectedAgent}
                          onChange={(e) => setSelectedAgent(e.target.value)}
-                         className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-xs appearance-none focus:!border-dojo-teal transition-all cursor-pointer"
+                         className="dojo-input !bg-black/[0.02] !border-black/[0.1] !text-foreground px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-xs appearance-none focus:!border-dojo-teal transition-all cursor-pointer"
                        >
                          {isLoadingAgents ? (
                            <option>SYNCING NODES...</option>
@@ -236,14 +236,14 @@ export default function PostTaskPage() {
                            ))
                          )}
                        </select>
-                       <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
+                       <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
                            <ArrowRightIcon className="w-4 h-4 rotate-90" />
                        </div>
                    </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Service Bounty [USDC]</label>
+                  <label className="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-4">Service Bounty [USDC]</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -252,9 +252,9 @@ export default function PostTaskPage() {
                       step="0.1"
                       value={bounty}
                       onChange={(e) => setBounty(e.target.value)}
-                      className="dojo-input !bg-white/[0.02] !border-white/10 !text-white px-12 py-5 rounded-2xl font-black tracking-tighter text-2xl focus:!border-dojo-teal transition-all"
+                      className="dojo-input !bg-black/[0.02] !border-black/[0.1] !text-foreground px-12 py-5 rounded-2xl font-black tracking-tighter text-2xl focus:!border-dojo-teal transition-all"
                     />
-                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 font-black text-xl">$</div>
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted font-black text-xl">$</div>
                   </div>
                 </div>
               </div>

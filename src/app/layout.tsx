@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "0rca Swarm Dojo 道場",
-  description: "Premium decentralized AI agent marketplace on Algorand",
+  title: "0rca — On-Chain Notional Cash Pooling",
+  description: "Compliance-first cash pooling for multinational treasuries. Bridge banking-grade risk management with crypto-native execution speed.",
 };
 
 export default function RootLayout({
@@ -20,14 +20,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap"
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400,300&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} font-sans`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

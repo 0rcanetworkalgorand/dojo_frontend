@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { WalletButton } from "./WalletButton";
 import { WalletModal } from "./WalletModal";
 import { cn } from "@/lib/utils/index";
-import { LogOut, Wallet, Menu } from "lucide-react";
+import { Wallet, Menu, X } from "lucide-react";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +23,7 @@ export function Navigation() {
   const { activeAccount, wallets } = useWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -31,61 +32,99 @@ export function Navigation() {
   const connectedWallet = wallets.find((w) => w.isConnected);
 
   return (
-    <nav className="bg-dojo-bg/80 backdrop-blur-xl border-b border-white/[0.05] sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-6 sm:px-12">
-        <div className="flex items-center justify-between h-24">
-          <Link href="/dashboard" className="flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-black font-black text-2xl group-hover:scale-105 transition-transform duration-500">
+    <nav className="glass sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/dashboard" className="flex items-center gap-3 group shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-lg group-hover:scale-[1.02] transition-transform duration-200">
               0
             </div>
-            <div className="flex flex-col">
-              <span className="font-heading font-black text-white text-xl uppercase tracking-tighter leading-none">
-                0RCA DOJO
+            <div className="hidden sm:flex flex-col">
+              <span className="font-heading font-bold text-foreground text-sm uppercase tracking-tight leading-none">
+                0RCA
               </span>
-              <span className="text-[9px] text-dojo-teal font-black uppercase tracking-[0.3em] mt-1 opacity-80">
-                Zen Infrastructure
+              <span className="text-[10px] text-muted-light font-medium uppercase tracking-wider leading-none mt-0.5">
+                On-Chain Treasuries
               </span>
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-10">
-            <div className="flex items-center gap-2">
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  pathname === item.href
+                    ? "text-foreground bg-black/[0.04]"
+                    : "text-muted hover:text-foreground hover:bg-black/[0.02]"
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right Side */}
+          <div className="flex items-center gap-3">
+            <div className="h-6 w-px bg-black/[0.06] hidden md:block" />
+            
+            {mounted && activeAccount ? (
+              <WalletButton />
+            ) : (
+              <button
+                onClick={() => setIsWalletModalOpen(true)}
+                className="btn-primary text-sm py-2 px-5 rounded-md"
+              >
+                <Wallet size={15} className="shrink-0" />
+                <span className="hidden sm:inline">Connect Wallet</span>
+              </button>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden p-2 text-muted hover:text-foreground hover:bg-black/[0.04] rounded-md transition-colors"
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden glass border-t border-black/[0.06] overflow-hidden"
+          >
+            <div className="max-w-7xl mx-auto px-4 py-3 space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300",
+                    "block px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
                     pathname === item.href
-                      ? "bg-white text-black"
-                      : "text-white/50 hover:text-white hover:bg-white/5"
+                      ? "text-foreground bg-black/[0.04]"
+                      : "text-muted hover:text-foreground hover:bg-black/[0.02]"
                   )}
                 >
                   {item.label}
                 </Link>
               ))}
             </div>
-
-            <div className="h-4 w-px bg-white/10 mx-2" />
-
-            {mounted && activeAccount ? (
-              <WalletButton />
-            ) : (
-              <button
-                onClick={() => setIsWalletModalOpen(true)}
-                className="dojo-button flex items-center gap-2"
-              >
-                <Wallet size={16} />
-                Connect Wallet
-              </button>
-            )}
-          </div>
-
-          <button className="md:hidden p-3 text-white/50 hover:text-white hover:bg-white/5 rounded-2xl transition-all">
-            <Menu size={24} />
-          </button>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <WalletModal 
         open={isWalletModalOpen} 
