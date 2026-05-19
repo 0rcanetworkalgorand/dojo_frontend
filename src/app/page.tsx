@@ -271,7 +271,7 @@ export default function LandingPage() {
           <h3 className="font-heading font-bold text-foreground text-lg uppercase tracking-tight mb-2">
             0RCA
           </h3>
-          <p className="text-muted text-sm mb-8">On-Chain Notional Cash Pooling</p>
+          <p className="text-muted text-sm mb-8">On-Chain Agent Swarm</p>
           <div className="flex items-center justify-center gap-8 mb-8">
             {[
               { label: "Twitter", href: "#" },
