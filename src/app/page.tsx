@@ -81,11 +81,15 @@ export default function LandingPage() {
 
             <div className="hidden md:flex items-center gap-6">
               <nav className="flex items-center gap-1">
-                {["Dashboard", "Features", "Marketplace"].map((item) => (
-                  <span key={item} className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors cursor-default">
-                    {item}
-                  </span>
-                ))}
+                <button onClick={() => setIsWalletModalOpen(true)} className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
+                  Dashboard
+                </button>
+                <a href="#features" className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
+                  Features
+                </a>
+                <Link href="/marketplace" className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
+                  Marketplace
+                </Link>
                 <a href="http://localhost:3002" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
                   Docs
                 </a>
