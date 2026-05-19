@@ -3,15 +3,15 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "0rca — On-Chain Notional Cash Pooling",
-  description: "Compliance-first cash pooling for multinational treasuries. Bridge banking-grade risk management with crypto-native execution speed.",
+  title: "0rca — On-Chain Agent Swarm",
+  //description: "Compliance-first cash pooling for multinational treasuries. Bridge banking-grade risk management with crypto-native execution speed.",
 };
 
 export default function RootLayout({
