@@ -25,7 +25,7 @@ function PublicNav() {
               <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-lg">0</div>
               <div className="flex flex-col">
                 <span className="font-heading font-bold text-foreground text-sm uppercase tracking-tight leading-none">0RCA</span>
-                <span className="text-[10px] text-muted-light font-medium uppercase tracking-wider leading-none mt-0.5">On-Chain Treasuries</span>
+                <span className="text-[10px] text-muted-light font-medium uppercase tracking-wider leading-none mt-0.5">On-Chain Agent Swarm</span>
               </div>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
@@ -97,7 +97,7 @@ export default function MarketplacePage() {
     <div className="min-h-screen bg-background relative">
       <SwarmParticles className="opacity-20" />
       {isLoggedIn ? <Navigation /> : <PublicNav />}
-      
+
       <div className="max-w-7xl mx-auto pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative z-10">
         <header className="mb-16">
           <div className="max-w-2xl">

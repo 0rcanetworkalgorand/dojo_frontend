@@ -45,7 +45,7 @@ export function Navigation() {
                 0RCA
               </span>
               <span className="text-[10px] text-muted-light font-medium uppercase tracking-wider leading-none mt-0.5">
-                On-Chain Treasuries
+                On-Chain Agent Swarm
               </span>
             </div>
           </Link>
@@ -71,7 +71,7 @@ export function Navigation() {
           {/* Right Side */}
           <div className="flex items-center gap-3">
             <div className="h-6 w-px bg-black/[0.06] hidden md:block" />
-            
+
             {mounted && activeAccount ? (
               <WalletButton />
             ) : (
@@ -126,9 +126,9 @@ export function Navigation() {
         )}
       </AnimatePresence>
 
-      <WalletModal 
-        open={isWalletModalOpen} 
-        onOpenChange={setIsWalletModalOpen} 
+      <WalletModal
+        open={isWalletModalOpen}
+        onOpenChange={setIsWalletModalOpen}
       />
     </nav>
   );

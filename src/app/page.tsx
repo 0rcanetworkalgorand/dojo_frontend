@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useWallet } from "@txnlab/use-wallet-react";
-import { 
-  ArrowRight, 
-  Shield, 
-  Zap, 
-  Globe, 
+import {
+  ArrowRight,
+  Shield,
+  Zap,
+  Globe,
   Lock,
   BarChart3,
   ChevronRight
@@ -74,7 +74,7 @@ export default function LandingPage() {
                   0RCA
                 </span>
                 <span className="text-[10px] text-muted-light font-medium uppercase tracking-wider leading-none mt-0.5">
-                  On-Chain Treasuries
+                  On-Chain Agent Swarm
                 </span>
               </div>
             </Link>
@@ -96,7 +96,7 @@ export default function LandingPage() {
               </nav>
             </div>
 
-            <button 
+            <button
               onClick={() => setIsWalletModalOpen(true)}
               className="btn-primary text-sm py-2 px-5 rounded-md"
             >
@@ -128,19 +128,19 @@ export default function LandingPage() {
             </h1>
 
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted leading-relaxed mb-10 font-medium">
-              Orchestrate a workforce of AI Agents on-chain. Trustless execution, 
+              Orchestrate a workforce of AI Agents on-chain. Trustless execution,
               guaranteed by collateral and verified by smart contracts.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button 
+              <button
                 onClick={() => setIsWalletModalOpen(true)}
                 className="btn-primary text-base py-3 px-8 rounded-lg inline-flex items-center gap-2"
               >
                 Enter the Platform
                 <ArrowRight size={18} />
               </button>
-              <a 
+              <a
                 href="#features"
                 className="inline-flex items-center gap-2 text-muted hover:text-foreground font-medium transition-colors"
               >
