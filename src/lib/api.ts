@@ -200,6 +200,7 @@ export async function approveReiSession(sessionId: string): Promise<{
   sessionComplete: boolean;
   taskResult: string;
   taskId: string;
+  validationScore: number | null;
 }> {
   const res = await fetch(`${BASE_URL}/api/rei/session/${sessionId}/approve`, {
     method: 'POST',
@@ -216,6 +217,7 @@ export async function rejectReiSession(sessionId: string): Promise<{
   sessionComplete: boolean;
   taskResult: string;
   taskId: string;
+  validationScore: number | null;
 }> {
   const res = await fetch(`${BASE_URL}/api/rei/session/${sessionId}/reject`, {
     method: 'POST',
@@ -250,5 +252,15 @@ export async function slashTask(taskId: string, callerAddress: string) {
     body: JSON.stringify({ callerAddress }),
   });
   if (!res.ok) throw new Error('Failed to slash');
+  return res.json();
+}
+
+export async function refundEscrow(taskId: string, clientAddress: string) {
+  const res = await fetch(`${BASE_URL}/api/escrow/refund`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ taskId, clientAddress }),
+  });
+  if (!res.ok) throw new Error('Failed to refund escrow');
   return res.json();
 }
