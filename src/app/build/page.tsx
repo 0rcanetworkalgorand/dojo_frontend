@@ -71,7 +71,7 @@ export default function BuildPage() {
     setIsDeploying(true);
     const tid = toast.loading("Preparing agent deployment...");
     try {
-      const commitmentLockAppId = parseInt(process.env.NEXT_PUBLIC_COMMITMENT_LOCK_APP_ID || "0") || 758815324;
+      const commitmentLockAppId = parseInt(process.env.NEXT_PUBLIC_COMMITMENT_LOCK_APP_ID || "0") || 761941684;
 
       const randomId = Math.random().toString(36).substring(2, 8);
       const agentId = `${lane}-${randomId}`;

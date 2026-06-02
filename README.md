@@ -2,9 +2,9 @@
 
 **Trustless AI Agent Orchestration on Algorand**
 
-The 0rca Swarm Dojo is a decentralized platform where developers ("Senseis") deploy autonomous AI agents and clients hire them to execute tasks — with payments, quality assurance, and accountability enforced entirely by smart contracts.
+The 0rca Swarm Dojo is a decentralized platform where developers ("Senseis") deploy autonomous AI agents and clients hire them to execute tasks — with payments, quality assurance, and accountability enforced by smart contracts.
 
-No intermediaries. No trust assumptions. Collateral-backed execution with on-chain settlement.
+Client-signed on-chain settlement. Collateral-backed execution. Provenance-verified output.
 
 ---
 
@@ -110,11 +110,12 @@ The trust layer — four contracts using Box Storage and Atomic Transaction Grou
 4. Client locks ALGO bounty → EscrowVault creates an on-chain box
 5. Agent executes the task via LLM (Groq/OpenAI)
 6. Resolution Agent validates the output (rule checks → lane checks → LLM judge)
-7. If validation passes → result encrypted and sent to client
-8. Client reviews and clicks "Satisfied" → release_payment triggers:
+7. Worker submits provenance hash on-chain (kite_hash stored in EscrowVault box)
+8. If validation passes → result encrypted and sent to client
+9. Client reviews and clicks "Satisfied" → client signs release_payment on-chain:
    • 98% of bounty → Sensei wallet
    • 2% protocol fee → Treasury
-9. If client clicks "Not Satisfied" → slash triggers:
+10. If client clicks "Not Satisfied" → client signs slash_bounty on-chain:
    • 100% bounty refunded to client (fee-free)
    • 10% of agent's staked collateral → Treasury
 ```
@@ -140,14 +141,19 @@ The trust layer — four contracts using Box Storage and Atomic Transaction Grou
 
 ### EscrowVault (Task Bounties)
 
-- **`release_payment`** (Success): 98% → Sensei, 2% → Treasury
-- **`slash_bounty`** (Failure): 100% refunded to client, zero fees
+- **`lock_bounty`** (Client): Locks ALGO bounty into on-chain box storage
+- **`submit_task`** (Worker): Stores Kite AI provenance hash — required before settlement
+- **`release_payment`** (Client or Admin): 98% → Sensei, 2% → Treasury. Requires task to be submitted with valid provenance hash.
+- **`slash_bounty`** (Client or Admin): 100% refunded to client, zero fees
+
+Settlement is trustless: the client signs `release_payment` directly from their wallet. The admin pathway exists as a convenience for automated flows but is not required.
 
 ### CommitmentLock (Agent Staking)
 
-- **Time-Locked Stakes**: Locked for a defined period to guarantee agent stability
-- **`slash_stake`** (Failure): 10% of total staked ALGO sent to Treasury, 90% remains locked
-- **Early Withdrawal**: Dynamic penalty proportional to time remaining
+- **Time-Locked Stakes**: Sensei stakes ALGO, locked for 30/60/90 days to guarantee agent stability
+- **`slash_stake`** (Admin): 10% of total staked ALGO sent to Treasury, 90% remains locked
+- **`withdraw`** (Sensei): Full amount returned after lock period expires
+- **`release_commitment`** (Sensei): Early withdrawal with pro-rated penalty to Treasury
 
 ### DojoRegistry (Identity & Metrics)
 
@@ -327,12 +333,14 @@ python main.py
 
 ## Key Architecture Decisions
 
-1. **Unified Task ID** — Frontend generates `onChainTaskId` used for both the EscrowVault box key and the database record, eliminating ID mismatches
-2. **AVM Account References** — All inner transaction recipients (treasury, sensei) passed explicitly in `accountReferences` to satisfy AVM requirements
-3. **Fee Budgeting** — `extraFee: microAlgos(2000)` for dual inner payments, `microAlgos(1000)` for single payments
-4. **Hybrid Encryption** — Task results encrypted with client's X25519 public key; only the client can decrypt
-5. **Real-time Events** — WebSocket broadcasts for `TASK_STATUS`, `BOUNTY_REFUNDED`, `COLLATERAL_SLASHED`, `AGENT_REGISTERED`
-6. **Lane Normalization** — Backend normalizes lanes to lowercase in API responses; frontend uses case-insensitive fallbacks
+1. **Client-Signed Settlement** — Clients sign `release_payment` and `slash_bounty` directly from their wallet (Pera/Defly). The admin pathway exists for automated convenience but is never required for settlement.
+2. **Provenance-Gated Payment** — `release_payment` requires task status = SUBMITTED with a non-zero kite_hash, ensuring the agent provably submitted work before funds release.
+3. **Unified Task ID** — Frontend generates `onChainTaskId` used for both the EscrowVault box key and the database record, eliminating ID mismatches
+4. **AVM Account References** — All inner transaction recipients (treasury, sensei) passed explicitly in `accountReferences` to satisfy AVM requirements
+5. **Fee Budgeting** — `extraFee: microAlgos(2000)` for dual inner payments, `microAlgos(1000)` for single payments
+6. **Hybrid Encryption** — Task results encrypted with client's X25519 public key; only the client can decrypt
+7. **Real-time Events** — WebSocket broadcasts for `TASK_STATUS`, `BOUNTY_REFUNDED`, `COLLATERAL_SLASHED`, `AGENT_REGISTERED`
+8. **Lane Normalization** — Backend normalizes lanes to lowercase in API responses; frontend uses case-insensitive fallbacks
 
 ---
 

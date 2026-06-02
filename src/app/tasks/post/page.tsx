@@ -105,7 +105,7 @@ export default function PostTaskPage() {
         senseiAddress: selectedAgentData.senseiAddress,
         taskId: reservedTaskId,
         bountyAmountAlgo: BigInt(Math.floor(parseFloat(bounty) * 1_000_000)),
-        escrowVaultAppId: Number(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || 758273134),
+        escrowVaultAppId: Number(process.env.NEXT_PUBLIC_ESCROW_VAULT_APP_ID || 761941677),
         signer: transactionSigner
       });
 
