@@ -31,6 +31,9 @@ export default function BuildPage() {
   const { isAuthenticated, isLoading } = useAuthGuard();
   const [step, setStep] = useState(1);
   const [lane, setLane] = useState<Lane | null>(null);
+  const [agentName, setAgentName] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [nameChecking, setNameChecking] = useState(false);
   const [llmTier, setLlmTier] = useState<typeof LLM_TIERS[number]>("Standard");
   const [biddingStrategy, setBiddingStrategy] = useState<typeof BIDDING_STRATEGIES[number]>("Volume");
   const [algoStake, setAlgoStake] = useState(1);
@@ -44,7 +47,7 @@ export default function BuildPage() {
     id: "preview-id",
     address: "PREVIEW_ADDRESS",
     senseiAddress: activeAccount?.address || "0x000...",
-    name: "New Agent",
+    name: agentName || "New Agent",
     lane: lane || "research",
     status: "ACTIVE",
     taskCount: 0,
@@ -55,7 +58,28 @@ export default function BuildPage() {
     llmModel: LLM_TIER_DISPLAY[llmTier].model,
     biddingStrategy: biddingStrategy,
     collateral: algoStake,
-  }), [lane, activeAccount, llmTier, biddingStrategy, algoStake]);
+  }), [lane, activeAccount, agentName, llmTier, biddingStrategy, algoStake]);
+
+  const checkNameAvailability = async (name: string) => {
+    if (!name || name.length < 3) {
+      setNameError(name.length > 0 ? "Name must be at least 3 characters" : "");
+      return;
+    }
+    setNameChecking(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/check-name?name=${encodeURIComponent(name)}`);
+      const data = await res.json();
+      if (data.exists) {
+        setNameError("Name already taken");
+      } else {
+        setNameError("");
+      }
+    } catch {
+      setNameError("");
+    } finally {
+      setNameChecking(false);
+    }
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -115,6 +139,7 @@ export default function BuildPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           agentId,
+          agentName: agentName.trim(),
           senseiAddress: activeAccount.address,
           lane: lane.toUpperCase(),
           llmTier,
@@ -199,6 +224,35 @@ export default function BuildPage() {
                   exit={{ opacity: 0, x: 20 }}
                 >
                   <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter mb-10">Sector Allocation</h2>
+
+                  <div className="dojo-card p-10 mb-10">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-6">Agent Name</label>
+                    <input
+                      type="text"
+                      value={agentName}
+                      onChange={(e) => {
+                        setAgentName(e.target.value);
+                        setNameError("");
+                      }}
+                      onBlur={() => checkNameAvailability(agentName)}
+                      placeholder="e.g. Nexus, Cipher, Atlas..."
+                      className={cn(
+                        "dojo-input !bg-black/[0.02] !border-black/[0.1] !text-foreground px-8 py-5 rounded-2xl text-lg font-bold tracking-tight focus:!border-dojo-teal transition-all w-full",
+                        nameError && "!border-red-500"
+                      )}
+                      maxLength={24}
+                    />
+                    {nameError && (
+                      <p className="mt-3 text-[10px] text-red-500 font-black uppercase tracking-widest">{nameError}</p>
+                    )}
+                    {nameChecking && (
+                      <p className="mt-3 text-[10px] text-muted font-black uppercase tracking-widest">Checking availability...</p>
+                    )}
+                    {agentName && !nameError && !nameChecking && agentName.length >= 3 && (
+                      <p className="mt-3 text-[10px] text-dojo-teal font-black uppercase tracking-widest">✓ Name available</p>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-2 gap-6">
                     {(Object.keys(LANE_LABELS) as Lane[]).map((l) => {
                       const Icon = laneIcons[l];
@@ -237,7 +291,7 @@ export default function BuildPage() {
                   <div className="mt-16 flex justify-end">
                     <Button 
                       onClick={() => setStep(2)} 
-                      disabled={!lane}
+                      disabled={!lane || !agentName || !!nameError}
                       className="!px-10"
                     >
                       CONFIGURE LOGIC [→]
@@ -423,6 +477,10 @@ export default function BuildPage() {
 
                   <div className="dojo-card p-12 mb-12">
                     <div className="space-y-8">
+                      <div className="flex justify-between items-center pb-8 border-b border-black/[0.05]">
+                        <span className="text-muted text-[10px] font-black uppercase tracking-[0.3em]">Agent Name</span>
+                        <span className="text-xl font-black text-foreground tracking-tighter">{agentName}</span>
+                      </div>
                       <div className="flex justify-between items-center pb-8 border-b border-black/[0.05]">
                         <span className="text-muted text-[10px] font-black uppercase tracking-[0.3em]">Operational Sector</span>
                         <span className="text-xl font-black text-foreground uppercase tracking-tighter">{lane}</span>

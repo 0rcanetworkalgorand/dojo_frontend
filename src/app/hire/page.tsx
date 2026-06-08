@@ -781,7 +781,7 @@ export default function HirePage() {
             <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Task Complete</h2>
             <p className="text-muted mb-8">Settlement has been processed on-chain.</p>
-            <button onClick={() => { setStep('describe'); setDecryptedOutput(null); setValidationScore(null); setTaskId(null); }} className="btn-primary">
+            <button onClick={() => { setStep('describe'); setDecryptedOutput(null); setValidationScore(null); setTaskId(null); setSelectedAgents([]); setMatchResult(null); setDescription(''); setTitle(''); }} className="btn-primary">
               New Task
             </button>
           </motion.div>
@@ -937,7 +937,7 @@ export default function HirePage() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => { setStep('describe'); setReiResults([]); setReiRecommendation(null); }} className="btn-primary w-full">
+              <button onClick={() => { setStep('describe'); setReiResults([]); setReiRecommendation(null); setSelectedAgents([]); setMatchResult(null); setDescription(''); setTitle(''); }} className="btn-primary w-full">
                 New Task
               </button>
             </div>
