@@ -6,15 +6,15 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
 
 ## Tasks
 
-- [ ] 1. Set up project structure and install dependencies
-  - [ ] 1.1 Install fast-check and create output directory structure
+- [x] 1. Set up project structure and install dependencies
+  - [x] 1.1 Install fast-check and create output directory structure
     - Install `fast-check` as a dev dependency
     - Create directories: `src/components/output/`, `src/lib/utils/`, `tests/output/`
     - Add `TaskOutput` type to `src/lib/types.ts`
     - _Requirements: 6.1, 6.3_
 
-- [ ] 2. Implement contentSplitter utility
-  - [ ] 2.1 Create contentSplitter with DOM splitting and decoy insertion
+- [x] 2. Implement contentSplitter utility
+  - [x] 2.1 Create contentSplitter with DOM splitting and decoy insertion
     - Implement `splitContent(html: string): SplitResult` that splits HTML into ≥3 non-contiguous segments per block
     - Implement `insertDecoys(segment: string, ratio: number): string` inserting 1 invisible decoy character per 50 visible characters
     - Wrap decoys in `<span aria-hidden="true" style="font-size:0;position:absolute">` elements
@@ -34,8 +34,8 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
     - Test Unicode and emoji content
     - _Requirements: 8.2, 8.4_
 
-- [ ] 3. Implement DownloadGenerator utility
-  - [ ] 3.1 Create DownloadGenerator with filename builder and markdown file generation
+- [x] 3. Implement DownloadGenerator utility
+  - [x] 3.1 Create DownloadGenerator with filename builder and markdown file generation
     - Implement `buildFilename(taskId: string, taskTitle: string): string` producing kebab-case filenames ≤80 chars ending in `.md`
     - Implement `generateMarkdownFile(options: DownloadOptions): Blob | null` building UTF-8 markdown with YAML frontmatter
     - Implement `triggerDownload(blob: Blob, filename: string): void` using Blob URL + `<a download>` click
@@ -74,11 +74,11 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
     - Test special characters in title handled correctly
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 4. Checkpoint - Utilities verified
+- [x] 4. Checkpoint - Utilities verified
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement useContentGuard hook
-  - [ ] 5.1 Create useContentGuard hook with event listener management
+- [x] 5. Implement useContentGuard hook
+  - [x] 5.1 Create useContentGuard hook with event listener management
     - Implement `useContentGuard(enabled: boolean): UseContentGuardReturn`
     - Attach listeners for `copy`, `cut`, `paste`, `contextmenu`, `dragstart`, `selectstart` that call `preventDefault()`
     - Apply `user-select: none` via inline style on container ref
@@ -95,8 +95,8 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
     - Test cleanup on unmount
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-- [ ] 6. Implement WatermarkOverlay component
-  - [ ] 6.1 Create WatermarkOverlay with tiled SVG pattern
+- [x] 6. Implement WatermarkOverlay component
+  - [x] 6.1 Create WatermarkOverlay with tiled SVG pattern
     - Accept `clientAddress` (58 chars) and `timestamp` (ISO 8601)
     - Render full-coverage div with `pointer-events: none`
     - Display tiled SVG pattern at 15-25% opacity with text rotated 45°
@@ -116,8 +116,8 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
     - Test 45° rotation on text elements
     - _Requirements: 3.2_
 
-- [ ] 7. Implement DevToolsDetector component
-  - [ ] 7.1 Create DevToolsDetector with resize heuristic and debugger timing
+- [x] 7. Implement DevToolsDetector component
+  - [x] 7.1 Create DevToolsDetector with resize heuristic and debugger timing
     - Implement resize heuristic: `window.outerWidth - window.innerWidth > 160` (or height equivalent)
     - Implement debugger timing: measure execution time >100ms indicates DevTools open
     - Fire `onOpen`/`onClose` callbacks on state change
@@ -130,8 +130,8 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
     - Test cleanup on unmount
     - _Requirements: 8.3_
 
-- [ ] 8. Implement SatisfactionControls component
-  - [ ] 8.1 Create SatisfactionControls with satisfy/dissatisfy buttons and API integration
+- [x] 8. Implement SatisfactionControls component
+  - [x] 8.1 Create SatisfactionControls with satisfy/dissatisfy buttons and API integration
     - Render Satisfaction_Button with contrasting style, minimum 44×44px touch target
     - Render Dissatisfaction_Button alongside
     - On satisfy click: disable button, show loading, call `onSatisfy` callback
@@ -150,11 +150,11 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
     - Test error re-enables buttons
     - _Requirements: 4.1, 4.2, 4.6, 4.7, 5.1, 5.2, 5.6_
 
-- [ ] 9. Checkpoint - Components verified
+- [x] 9. Checkpoint - Components verified
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement OutputPanel orchestrator component
-  - [ ] 10.1 Create OutputPanel with state-aware rendering and protection orchestration
+- [x] 10. Implement OutputPanel orchestrator component
+  - [x] 10.1 Create OutputPanel with state-aware rendering and protection orchestration
     - Accept `task: Task` and `clientAddress: string` props
     - Render nothing for CREATED/LOCKED states
     - Fetch task output from `GET /api/tasks/:taskId/output` for SUBMITTED state
@@ -191,23 +191,23 @@ Implement a client-side content protection system for the 0RCA Dojo task output 
     - Test visibility overlay show/hide timing
     - _Requirements: 4.2, 4.3, 4.4, 4.5, 4.6, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 11. Create API route for task output
-  - [ ] 11.1 Create GET /api/tasks/[taskId]/output Next.js API route
+- [x] 11. Create API route for task output
+  - [x] 11.1 Create GET /api/tasks/[taskId]/output Next.js API route
     - Create `src/app/api/tasks/[taskId]/output/route.ts`
     - Proxy request to backend at `GET http://localhost:3001/api/tasks/:taskId/output`
     - Return `TaskOutputResponse` shape: `{ taskId, content, submittedAt, agentAddress }`
     - Handle errors (404, 500) with appropriate status codes
     - _Requirements: 1.1, 8.1_
 
-- [ ] 12. Integrate OutputPanel into task detail page
-  - [ ] 12.1 Create task detail page at src/app/tasks/[id]/page.tsx with OutputPanel integration
+- [x] 12. Integrate OutputPanel into task detail page
+  - [x] 12.1 Create task detail page at src/app/tasks/[id]/page.tsx with OutputPanel integration
     - Create `src/app/tasks/[id]/page.tsx` dynamic route
     - Fetch task data using existing `fetchTask` pattern
     - Conditionally render `OutputPanel` when task state warrants it
     - Pass `task` and `clientAddress` (from wallet context) to OutputPanel
     - _Requirements: 7.1, 7.2_
 
-- [ ] 13. Final checkpoint - Full integration verified
+- [x] 13. Final checkpoint - Full integration verified
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

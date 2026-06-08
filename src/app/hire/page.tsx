@@ -17,6 +17,9 @@ import { truncateAddress } from '@/lib/utils/format';
 import algosdk from 'algosdk';
 import { io } from 'socket.io-client';
 import { buildCreateTaskGroup } from '@/lib/transactions/escrowVault';
+import { useContentGuard } from '@/hooks/useContentGuard';
+import { WatermarkOverlay } from '@/components/output/WatermarkOverlay';
+import { generateMarkdownFile, triggerDownload, buildFilename } from '@/lib/utils/downloadGenerator';
 
 type Step = 'describe' | 'match' | 'confirm' | 'processing' | 'awaiting-approval' | 'result' | 'rei-recommendation' | 'rei-staking' | 'rei-working' | 'rei-complete';
 
@@ -469,6 +472,23 @@ export default function HirePage() {
     try {
       toast.loading('Releasing payment...', { id: 'release' });
       await releaseTaskPayment(taskId, activeAccount.address);
+      
+      // Generate and trigger markdown download on satisfaction
+      if (decryptedOutput) {
+        const blob = generateMarkdownFile({
+          taskId,
+          taskTitle: description || 'task-output',
+          content: decryptedOutput,
+          lane: 'RESEARCH' as any,
+          agentAddress: '',
+          completionDate: new Date().toISOString(),
+        });
+        if (blob) {
+          const filename = buildFilename(taskId, description || 'task-output');
+          triggerDownload(blob, filename);
+        }
+      }
+      
       toast.success('Payment released to sensei!', { id: 'release' });
       setStep('result');
     } catch (error: any) {
@@ -752,12 +772,22 @@ export default function HirePage() {
                   </div>
                 )}
               </div>
-              <div className="prose prose-sm max-w-none mb-8 p-4 rounded-lg bg-black/[0.02] border border-black/[0.06] max-h-96 overflow-y-auto">
+              <div className="prose prose-sm max-w-none mb-8 p-4 rounded-lg bg-black/[0.02] border border-black/[0.06] max-h-96 overflow-y-auto relative"
+                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                onCopy={(e) => e.preventDefault()}
+                onCut={(e) => e.preventDefault()}
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+              >
+                <WatermarkOverlay clientAddress={activeAccount?.address || 'anonymous'} timestamp={new Date().toISOString()} />
+                <div className="relative z-0">
                 {decryptedOutput ? (
                   <ReactMarkdown>{decryptedOutput}</ReactMarkdown>
                 ) : (
                   <p className="text-muted">Loading output...</p>
                 )}
+                </div>
+                <p className="text-[10px] text-amber-500/80 text-center mt-2 font-medium">⚠ Content is copy-protected until you confirm satisfaction</p>
               </div>
               <div className="flex gap-4">
                 <button onClick={handleRelease} className="btn-primary flex-1">
@@ -894,8 +924,18 @@ export default function HirePage() {
                   <span className="text-sm text-violet-700">Agent is executing task...</span>
                 </div>
               ) : (
-                <div className="prose prose-sm max-w-none mb-6 p-4 rounded-lg bg-black/[0.02] border border-black/[0.06] max-h-64 overflow-y-auto">
+                <div className="prose prose-sm max-w-none mb-6 p-4 rounded-lg bg-black/[0.02] border border-black/[0.06] max-h-64 overflow-y-auto relative"
+                  style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                  onCopy={(e) => e.preventDefault()}
+                  onCut={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                >
+                  <WatermarkOverlay clientAddress={activeAccount?.address || 'anonymous'} timestamp={new Date().toISOString()} />
+                  <div className="relative z-0">
                   <ReactMarkdown>{reiDecryptedOutput || ''}</ReactMarkdown>
+                  </div>
+                  <p className="text-[10px] text-amber-500/80 text-center mt-2 font-medium">⚠ Content is copy-protected until approved</p>
                 </div>
               )}
 

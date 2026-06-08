@@ -73,3 +73,10 @@ export interface Stats {
   tasksToday: number;
   usdcVolume: number;
 }
+
+export interface TaskOutput {
+  taskId: string;
+  content: string;
+  submittedAt: string;
+  agentAddress: string;
+}
