@@ -90,7 +90,7 @@ export default function LandingPage() {
                 <Link href="/marketplace" className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
                   Marketplace
                 </Link>
-                <a href="http://localhost:3002" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
+                <a href="https://swarm-docs-six.vercel.app" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground rounded-md transition-colors">
                   Docs
                 </a>
               </nav>
@@ -280,7 +280,7 @@ export default function LandingPage() {
             {[
               { label: "Twitter", href: "#" },
               { label: "GitHub", href: "#" },
-              { label: "Documentation", href: "http://localhost:3002" },
+              { label: "Documentation", href: "https://swarm-docs-six.vercel.app" },
             ].map((link) => (
               <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" className="text-sm text-muted hover:text-foreground transition-colors font-medium">
                 {link.label}

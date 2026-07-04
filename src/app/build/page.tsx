@@ -119,6 +119,7 @@ export default function BuildPage() {
 
       const txGroup = atc.buildGroup();
       const rawTxns = txGroup.map(t => t.txn.toByte());
+      console.log("[Build] Raw txns to sign:", rawTxns.length, rawTxns.map(t => t.length));
 
       const signedTxns = await signTransactions(rawTxns);
       if (!signedTxns || signedTxns.length === 0) {
